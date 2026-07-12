@@ -1,0 +1,1321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>NeonMoon</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Gaegu:wght@400;700&family=Jua&display=swap" rel="stylesheet">
+<style>
+:root{
+  --neon1:#ffa8d8; --neon1-light:#fff0f8;
+  --neon2:#22d9ff; --neon2-light:#e2f9ff;
+  --neon3:#fff700; --neon3-light:#fffbd6;
+  --neon4:#111;
+  --gray:#5b5563; --grayl:#6b6572; --ink:#3a3245;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html{-webkit-text-size-adjust:100%;}
+body{margin:0;font-family:'Gaegu','Do Hyeon',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:var(--gray);
+  background-color:#fff;
+  background-image:
+    radial-gradient(circle, var(--dotcolor,#a9d98c) 1px, transparent 1.3px),
+    radial-gradient(circle, var(--dotcolor,#a9d98c) 1px, transparent 1.3px);
+  background-size:22px 22px;
+  background-position:0 0, 11px 11px;
+  background-repeat:repeat;
+  animation:polkaColorCycle 16s linear infinite;
+  position:relative;
+}
+@keyframes polkaColorCycle{
+  0%{--dotcolor:#a9d98c;}
+  25%{--dotcolor:#9fd6ea;}
+  50%{--dotcolor:#f5a9cf;}
+  75%{--dotcolor:#f7e08a;}
+  100%{--dotcolor:#a9d98c;}
+}
+@property --dotcolor{
+  syntax:'<color>';
+  inherits:true;
+  initial-value:#a9d98c;
+}
+body::before{
+  content:"✿"; position:fixed; top:6%; right:6%; font-size:22px; color:#a9d98c; opacity:.6; pointer-events:none;
+}
+body::after{
+  content:"✿"; position:fixed; bottom:8%; left:5%; font-size:16px; color:#9fd6ea; opacity:.6; pointer-events:none;
+}
+.app{max-width:480px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;position:relative;z-index:1;
+  background:rgba(255,255,255,.35);
+  box-shadow:0 0 0 1px rgba(255,255,255,.5) inset;
+}
+.bg-fade{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:linear-gradient(180deg, rgba(255,255,255,.12) 0%, rgba(255,255,255,0) 30%, rgba(255,255,255,.18) 70%, rgba(255,255,255,.4) 100%);
+  mix-blend-mode:overlay;
+}
+
+.appbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 14px;position:relative;
+  background:linear-gradient(180deg,#eaffb0 0%,#b9e26a 55%,#9ed23f 100%);
+  border-bottom:2px solid #7fae2e;
+}
+.brand-wrap{display:flex;align-items:center;gap:6px;}
+.brand-folder{font-size:16px;}
+.brand{font-size:16px;font-weight:400;letter-spacing:.3px;color:#3a4a12;font-family:'Do Hyeon',sans-serif;}
+.brand-right{font-size:13px;font-weight:400;color:#3a4a12;font-family:'Do Hyeon',sans-serif;letter-spacing:.5px;}
+.export-fab{width:32px;height:32px;border-radius:50%;border:1px solid #7fae2e;background:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--ink);}
+.export-menu{position:absolute;top:44px;right:14px;background:#fff;border:none;border-radius:12px;box-shadow:0 10px 28px rgba(80,100,40,.25);padding:8px;display:none;flex-direction:column;gap:4px;width:190px;z-index:30;}
+.export-menu.open{display:flex;}
+.export-menu button{padding:10px 12px;border-radius:10px;border:none;background:#fff;font-size:12.5px;color:var(--gray);font-weight:600;text-align:left;}
+.export-menu button:hover{background:#fafafa;}
+.export-status-fixed{font-size:10.5px;color:var(--neon1);text-align:right;padding:0 14px;min-height:14px;}
+
+.breadcrumb-bar{
+  display:flex;align-items:center;gap:6px;flex-wrap:wrap;
+  padding:6px 14px;font-size:11.5px;color:#4a5a30;background:#f3fbe0;
+  border-bottom:1px solid #d9ecc0;font-family:'Do Hyeon',sans-serif;
+}
+.breadcrumb-bar .divider{color:#9fbf7a;}
+.breadcrumb-bar .hatch{
+  display:inline-block;width:56px;height:11px;
+  background-image:repeating-linear-gradient(135deg,#c9c9c9 0 2px,transparent 2px 5px);
+  vertical-align:middle;
+}
+.breadcrumb-bar .util{
+  display:inline-block;width:70px;height:11px;
+  background-image:repeating-linear-gradient(65deg,#e9a9c9 0 1px,transparent 1px 5px);
+  vertical-align:middle;
+}
+
+.tabline-bar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:9px 14px;background:#fff;font-size:13px;font-family:'Do Hyeon',sans-serif;
+  color:#7a8a92;border-bottom:1px solid #eef2f0;
+}
+.tabline-bar .left,.tabline-bar .right{display:flex;gap:6px;align-items:center;}
+.tabline-bar .sep{color:#cfd8d4;}
+
+.maintabs{display:flex;gap:6px;padding:10px 14px 8px;}
+.maintab-btn{flex:1;padding:10px 4px;text-align:center;border-radius:16px;border:1px solid #2a2233;
+  font-size:11.5px;font-weight:700;color:var(--ink);background:#fff;letter-spacing:.2px;border:1px solid #2a2233;}
+.maintab-btn.active{color:var(--ink);background:linear-gradient(180deg,var(--neon1),var(--neon1-light));}
+
+.stage-wrap{position:relative;background:transparent;padding:14px 18px 30px;}
+.stage-wrap::before{
+  content:"✿";
+  position:absolute;top:2px;left:6px;z-index:8;
+  font-size:52px;line-height:1;color:#a9d24f;
+  text-shadow:0 2px 0 #7fae2e,1px 3px 4px rgba(0,0,0,.15);
+  pointer-events:none;
+}
+.stage-caption{
+  position:absolute;left:24px;bottom:6px;z-index:8;
+  font-family:'Jua',sans-serif;font-size:12px;letter-spacing:.5px;
+  color:#3fb8b0;pointer-events:none;
+}
+.stage{
+  position:relative;width:auto;max-width:min(320px,86%);aspect-ratio:1/1;
+  max-height:min(60vh,460px);
+  margin:0 auto;
+  background-color:#eceef0;
+  border-radius:6px;overflow:hidden;border:6px solid #fff;
+  box-shadow:0 10px 24px rgba(80,60,120,.28);
+  touch-action:none;
+}
+#bgLayer{position:absolute;inset:0;background-size:contain;background-repeat:no-repeat;background-position:center;}
+#dotLayer,#polkaLayer,#neonLayer,#imgtextLayer{position:absolute;inset:0;}
+#dotLayer.drawmode{cursor:crosshair;}
+.upload-overlay{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:2;
+  background:rgba(236,238,240,.4);
+}
+.upload-btn-main{
+  padding:12px 20px;border-radius:22px;border:none;font-size:13px;font-weight:800;color:var(--ink);
+  background:rgba(255,255,255,.55);border:1px solid rgba(42,34,51,.35);opacity:.85;backdrop-filter:blur(2px);
+}
+.replace-btn{
+  position:absolute;top:8px;right:8px;z-index:6;padding:6px 12px;border-radius:20px;border:1px solid #2a2233;
+  font-size:11px;font-weight:800;color:var(--ink);background:var(--neon2);
+}
+.draw-toggle{
+  position:absolute;top:8px;left:8px;z-index:6;padding:6px 12px;border-radius:20px;border:1px solid #2a2233;
+  font-size:11px;font-weight:800;color:var(--ink);background:#fff;
+}
+.draw-toggle.active{color:var(--ink);background:linear-gradient(180deg,var(--neon1),var(--neon1-light));}
+.stage-top-fade{
+  position:absolute;top:0;left:0;right:0;height:70px;z-index:5;pointer-events:none;
+  background:linear-gradient(180deg, rgba(0,0,0,.32) 0%, rgba(0,0,0,0) 100%);
+}
+.stage-bottom-fade{
+  position:absolute;bottom:0;left:0;right:0;height:46px;z-index:5;pointer-events:none;
+  background:linear-gradient(0deg, rgba(0,0,0,.28) 0%, rgba(0,0,0,0) 100%);
+}
+
+.subtabs{display:flex;gap:6px;padding:10px 14px 4px;overflow-x:auto;}
+.subtab-btn{flex:0 0 auto;padding:6px 13px;border-radius:20px;border:1px solid #2a2233;font-size:11px;font-weight:700;color:var(--ink);background:#fff;white-space:nowrap;}
+.subtab-btn.active{color:var(--ink);background:linear-gradient(180deg,var(--neon2),var(--neon2-light));}
+
+.panel{display:none;padding:6px 14px 30px;}
+.panel.active{display:block;}
+.subpanel{display:none;}
+.subpanel.active{display:block;}
+
+.section-title{font-size:10.5px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+
+.row{display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap;}
+label.small{font-size:11px;color:var(--grayl);min-width:56px;}
+input[type=text],input[type=number],textarea,select{
+  flex:1;border:none;border-radius:14px;padding:8px 12px;font-size:16px;color:#444;background:#fff;min-width:0;
+  box-shadow:inset 0 0 0 1.5px #f2eaf8;
+}
+textarea{resize:none;min-height:38px;font-size:16px;}
+input[type=range]{flex:1;accent-color:var(--neon1);min-width:60px;}
+.range-val{font-size:11px;color:var(--gray);font-weight:700;min-width:26px;text-align:right;}
+input[type=color]{width:30px;height:30px;border:none;border-radius:10px;padding:0;background:none;flex:none;box-shadow:0 2px 6px rgba(150,120,200,.18);}
+
+.chip-row{display:flex;gap:6px;overflow-x:auto;flex-wrap:nowrap;padding-bottom:2px;margin-bottom:8px;}
+.chip-row-wrap{flex-wrap:wrap;overflow-x:visible;}
+.chip{
+  flex:0 0 auto;border:1px solid #2a2233;border-radius:20px;padding:6px 12px;font-size:11.5px;color:var(--ink);background:#fff;white-space:nowrap;
+}
+.chip.active{color:var(--ink);background:linear-gradient(180deg,var(--neon1),var(--neon1-light));}
+
+.preset-row{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;margin-bottom:6px;}
+.preset{
+  flex:0 0 auto;width:28px;height:28px;border-radius:9px;border:1px solid #2a2233;cursor:pointer;
+  display:flex;overflow:hidden;box-shadow:0 2px 8px rgba(150,120,200,.16);
+}
+.preset span{flex:1;}
+.preset.active{border-color:#8ee8ff;}
+
+button.primary{
+  width:100%;padding:12px;border:none;border-radius:16px;font-size:12.5px;font-weight:800;color:var(--ink);
+  background:linear-gradient(180deg,var(--neon3),var(--neon3-light));letter-spacing:.3px;margin-top:4px;
+  border:1px solid #2a2233;
+}
+button.ghost{
+  padding:8px 13px;border-radius:14px;border:1px solid #2a2233;background:#fff;color:var(--ink);font-size:11.5px;font-weight:700;
+}
+.btn-row{display:flex;gap:8px;margin-top:4px;flex-wrap:wrap;}
+
+.replace-list{display:flex;flex-direction:column;gap:6px;margin-top:6px;}
+.replace-item{border:none;background:#fff;box-shadow:0 2px 10px rgba(150,120,200,.12);border-radius:14px;padding:8px;display:flex;flex-wrap:wrap;gap:5px;align-items:center;font-size:11px;}
+.replace-item .rm{background:none;border:none;color:#ffb3b3;font-size:15px;padding:0 4px;margin-left:auto;}
+
+.added-list{display:flex;flex-direction:column;gap:8px;margin-top:10px;}
+.added-item{border:none;background:#fff;box-shadow:0 2px 10px rgba(150,120,200,.12);border-radius:16px;padding:10px;}
+.added-item .hd{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
+.added-item .hd input[type=text]{font-size:13px;padding:6px 8px;}
+.added-item .rm{background:none;border:none;color:#ffb3b3;font-size:16px;padding:0 4px;}
+
+.gap-list{display:flex;flex-direction:column;gap:6px;margin-top:6px;}
+.gap-item{display:flex;flex-direction:column;gap:6px;border:none;background:#fff;box-shadow:0 2px 10px rgba(150,120,200,.12);border-radius:14px;padding:8px;font-size:11.5px;}
+.gap-item .top{display:flex;align-items:center;gap:8px;}
+.gap-item .thumb{width:28px;height:28px;background:#f2f2f4;background-size:cover;background-position:center;flex:none;border-radius:6px;}
+.gap-item .lbl{flex:1;color:var(--grayl);}
+
+.hint{font-size:10px;color:var(--grayl);line-height:1.5;margin-top:4px;}
+
+.draggable{position:absolute;cursor:grab;user-select:none;touch-action:none;}
+.file-btn{padding:7px 12px;border:none;border-radius:12px;font-size:11px;color:var(--gray);background:#fff;box-shadow:0 2px 8px rgba(150,120,200,.14);}
+input[type=file]{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
+
+@keyframes popIn{0%{opacity:0;transform:translate(-50%,-50%) scale(.2);}100%{opacity:1;transform:translate(-50%,-50%) scale(1);}}
+@keyframes blinkAnim{0%,100%{opacity:1;}50%{opacity:.15;}}
+@keyframes floatAnim{0%,100%{transform:translate(-50%,-50%) translateY(0);}50%{transform:translate(-50%,-50%) translateY(-4px);}}
+@keyframes shakeAnim{0%,100%{transform:translate(-50%,-50%) rotate(0deg);}25%{transform:translate(-50%,-50%) rotate(4deg);}75%{transform:translate(-50%,-50%) rotate(-4deg);}}
+.m-pop{animation:popIn .5s ease both;}
+.m-blink{animation:blinkAnim 1.6s ease-in-out infinite;}
+.m-float{animation:floatAnim 2.4s ease-in-out infinite;transform-origin:center center;animation-fill-mode:both;}
+.m-shake{animation:shakeAnim 1.2s ease-in-out infinite;transform-origin:center center;animation-fill-mode:both;}
+@keyframes dropRollAnim{
+  0%{transform:translate(calc(-50% + var(--dx,0px)),calc(-50% + var(--dy,-90px))) scale(.55); opacity:0;}
+  12%{opacity:1;}
+  55%{transform:translate(calc(-50% + var(--dx,0px)),-50%) scale(1.05); opacity:1;}
+  62%{transform:translate(calc(-50% + var(--dx,0px)),-50%) scale(.92);}
+  100%{transform:translate(-50%,-50%) scale(1); opacity:1;}
+}
+@keyframes rainAnim{
+  0%{transform:translate(-50%,calc(-50% - 140%)); opacity:0;}
+  10%{opacity:1;}
+  90%{opacity:1;}
+  100%{transform:translate(-50%,calc(-50% + 140%)); opacity:0;}
+}
+.m-drop{animation:dropRollAnim 1.15s cubic-bezier(.25,.65,.35,1) both;}
+.m-rain{animation:rainAnim 1.6s linear infinite;}
+</style>
+</head>
+<body>
+<div class="bg-fade"></div>
+<div class="app">
+
+  <div class="appbar">
+    <div class="brand-wrap"><span class="brand-folder">📂</span><span class="brand">네온문</span></div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span class="brand-right">NeonMoon</span>
+      <button class="export-fab" id="exportFab">⇩</button>
+    </div>
+  </div>
+  <div class="breadcrumb-bar">
+    <span>내 IMG</span><span>📂</span><span>#</span><span class="hatch"></span>
+    <span class="divider">·</span>
+    <span>꾸미기</span><span class="util"></span>
+    <span class="divider">·</span>
+    <span># 고고!</span>
+  </div>
+  <div class="tabline-bar">
+    <div class="left"><span>스티커</span><span class="sep">|</span><span>다이어리</span></div>
+    <div class="right"><span>배경</span><span class="sep">|</span><span>폰트</span><span class="sep">|</span><span>도트</span><span class="sep">|</span><span>저장</span></div>
+  </div>
+  <div class="export-menu" id="exportMenu">
+    <button id="expPng">🖼 Export PNG</button>
+    <button id="expJpg">🖼 Export JPG</button>
+    <button id="expGif">✨ Motion GIF</button>
+    <button id="expBA">↔ Before→After GIF</button>
+  </div>
+  <div class="export-status-fixed" id="expStatus"></div>
+
+  <div class="maintabs">
+    <button class="maintab-btn active" data-tab="t1">Dot & Text</button>
+    <button class="maintab-btn" data-tab="t2">Neon Text</button>
+    <button class="maintab-btn" data-tab="t3">Text + Image</button>
+  </div>
+
+  <div class="stage-wrap">
+    <div class="stage-caption">neonmoon_deco</div>
+    <div class="stage" id="stage">
+      <div id="bgLayer"></div>
+      <div id="polkaLayer"></div>
+      <div id="dotLayer"></div>
+      <div id="imgtextLayer"></div>
+      <div id="neonLayer"></div>
+      <div class="upload-overlay" id="uploadOverlay">
+        <button type="button" class="upload-btn-main" id="uploadBtnMain">📷 Upload your photo!</button>
+      </div>
+      <div class="stage-top-fade"></div>
+      <div class="stage-bottom-fade"></div>
+      <button type="button" class="replace-btn" id="replaceBtn" style="display:none;">Replace photo</button>
+      <button type="button" class="draw-toggle" id="drawToggle" style="display:none;">✎ Draw mode: Off</button>
+      <input type="file" id="bgFile" accept="image/*">
+    </div>
+  </div>
+
+  <div class="panel active" id="t1">
+    <div class="subtabs" id="subtabs1">
+      <button class="subtab-btn active" data-sub="s1a">Text</button>
+      <button class="subtab-btn" data-sub="s1b">Shape</button>
+      <button class="subtab-btn" data-sub="s1c">Polka</button>
+      <button class="subtab-btn" data-sub="s1d">Motion</button>
+    </div>
+
+    <div class="subpanel active" id="s1a">
+      <div class="section-title">Color preset</div>
+      <div class="preset-row" id="presetRow1"></div>
+      <div class="row"><input type="text" id="dotText" placeholder="Type text..."></div>
+      <div class="row">
+        <label class="small">Font</label>
+        <select id="dotFont">
+          <option value="auto" selected>Cute</option>
+          <option value="-apple-system,Arial,sans-serif">Sans</option>
+          <option value="Georgia,serif">Serif</option>
+          <option value="'Courier New',monospace">Mono</option>
+          <option value="'Brush Script MT',cursive">Cursive</option>
+        </select>
+      </div>
+      <div class="row">
+        <label class="small">Dot color</label><input type="color" id="dotColor" value="#ff3fd0">
+        <label class="small">Text color</label><input type="color" id="dotTextColor" value="#ffffff">
+      </div>
+      <div class="row"><label class="small">Dot count</label><input type="range" id="dotCount" min="1" max="60" value="1"><span class="range-val" id="dotCountVal">1</span></div>
+      <div class="row"><label class="small">Dot size</label><input type="range" id="dotSize" min="14" max="60" value="34"><span class="range-val" id="dotSizeVal">34</span></div>
+      <div class="row"><label class="small">Text size</label><input type="range" id="dotTextSize" min="20" max="100" value="42"><span class="range-val" id="dotTextSizeVal">42</span></div>
+      <div class="btn-row">
+        <button class="ghost" id="shuffleBtn">🔀 Re-scatter</button>
+        <button class="ghost" id="clearDotsBtn">🗑 Clear all</button>
+      </div>
+      <div class="hint">Dot count auto-matches your text length (you can drag the slider for extra blank dots). Turn on "✎ Draw mode" on the photo to tap and place dots by hand.</div>
+    </div>
+
+    <div class="subpanel" id="s1b">
+      <div class="section-title">Dot shape</div>
+      <div class="chip-row chip-row-wrap" id="dotShapeRow">
+        <button class="chip active" data-v="circle">● Circle</button>
+        <button class="chip" data-v="heart">♥ Heart</button>
+        <button class="chip" data-v="star">★ Star</button>
+        <button class="chip" data-v="ring">◯ Ring</button>
+        <button class="chip" data-v="square">■ Square</button>
+        <button class="chip" data-v="flower">✿ Flower</button>
+        <button class="chip" data-v="drop">💧 Drop</button>
+      </div>
+      <div class="hint">Changing shape instantly applies to all existing dots.</div>
+    </div>
+
+    <div class="subpanel" id="s1c">
+      <div class="section-title">Polka dot overlay & shape</div>
+      <div class="chip-row chip-row-wrap">
+        <button class="chip polka-toggle-chip" data-v="off">Off</button>
+        <button class="chip polka-toggle-chip active" data-v="on">On</button>
+        <button class="chip polka-shape-chip active" data-v="circle">●</button>
+        <button class="chip polka-shape-chip" data-v="heart">♥</button>
+        <button class="chip polka-shape-chip" data-v="star">★</button>
+        <button class="chip polka-shape-chip" data-v="square">■</button>
+        <button class="chip polka-shape-chip" data-v="drop">💧</button>
+      </div>
+      <div class="row"><label class="small">Color</label><input type="color" id="polkaColor" value="#22d9ff"></div>
+      <div class="row"><label class="small">Size</label><input type="range" id="polkaSize" min="3" max="30" value="8"><span class="range-val" id="polkaSizeVal">8</span></div>
+      <div class="row"><label class="small">Spacing</label><input type="range" id="polkaSpace" min="14" max="60" value="26"><span class="range-val" id="polkaSpaceVal">26</span></div>
+      <div class="row"><label class="small">Opacity</label><input type="range" id="polkaOpacity" min="10" max="100" value="60"><span class="range-val" id="polkaOpacityVal">60</span></div>
+    </div>
+
+    <div class="subpanel" id="s1d">
+      <div class="section-title">Motion — applies instantly</div>
+      <div class="chip-row chip-row-wrap" id="dotMotionRow">
+        <button class="chip active" data-v="none">Static</button>
+        <button class="chip" data-v="pop">Pop in</button>
+        <button class="chip" data-v="blink">Blink</button>
+        <button class="chip" data-v="float">Float</button>
+        <button class="chip" data-v="shake">Shake</button>
+        <button class="chip" data-v="drop">Drop & roll</button>
+        <button class="chip" data-v="rain">Rain</button>
+      </div>
+      <div class="row"><label class="small">Loop count</label><input type="range" id="motionLoop" min="1" max="10" value="10"><span class="range-val" id="motionLoopVal">10</span></div>
+      <button class="ghost" id="playMotionBtn">▶ Play</button>
+      <div class="hint">How many times the motion repeats (1–10 loops), then it stays still on the last frame. Tap Play to replay it anytime.</div>
+    </div>
+  </div>
+
+  <div class="panel" id="t2">
+    <div class="subtabs" id="subtabs2">
+      <button class="subtab-btn active" data-sub="s2a">Add Text</button>
+      <button class="subtab-btn" data-sub="s2b">Letter→Shape</button>
+      <button class="subtab-btn" data-sub="s2c">Layers</button>
+    </div>
+
+    <div class="subpanel active" id="s2a">
+      <div class="section-title">Neon preset</div>
+      <div class="preset-row" id="presetRow2"></div>
+      <div class="row"><input type="text" id="neonTextInput" placeholder="Type text..."></div>
+      <div class="row">
+        <select id="neonFont">
+          <option value="-apple-system,Arial,sans-serif">Sans</option>
+          <option value="Georgia,serif">Serif</option>
+          <option value="'Courier New',monospace">Mono</option>
+          <option value="'Brush Script MT',cursive">Cursive</option>
+        </select>
+      </div>
+      <div class="row">
+        <button class="chip" id="neonBoldToggle" data-v="off"><b>B</b></button>
+        <button class="chip" id="neonItalicToggle" data-v="off"><i>I</i></button>
+        <input type="color" id="neonFill" value="#ff3fd0" title="Fill">
+        <input type="color" id="neonStroke" value="#22d9ff" title="Outline">
+      </div>
+      <div class="row"><label class="small">Outline width</label><input type="range" id="neonStrokeW" min="0" max="6" value="0"><span class="range-val" id="neonStrokeWVal">0</span></div>
+      <div class="row"><label class="small">Size</label><input type="range" id="neonSize" min="18" max="72" value="34"><span class="range-val" id="neonSizeVal">34</span></div>
+      <div class="row">
+        <button class="chip" id="neonBoxToggle" data-v="off">🗨 Text box</button>
+        <input type="color" id="neonBoxColor" value="#ffffff">
+        <input type="range" id="neonBoxOpacity" min="0" max="100" value="90" style="max-width:80px;"><span class="range-val" id="neonBoxOpacityVal">90</span>
+      </div>
+      <button class="primary" id="addNeonText">＋ Add text (then drag on photo)</button>
+      <div class="hint">Tap & drag text right on the preview to move it. Long text auto-wraps to the next line. Tap an added text on the photo to jump to it in Layers.</div>
+    </div>
+
+    <div class="subpanel" id="s2c">
+      <div class="section-title">Layers — tap to edit, ✕ to delete</div>
+      <div class="added-list" id="neonAddedList"></div>
+      <div class="hint" id="neonAddedEmptyHint">No text added yet. Go to "Add Text" first.</div>
+    </div>
+
+    <div class="subpanel" id="s2b">
+      <div class="section-title">Replace a letter with a shape (applies instantly)</div>
+      <div class="row">
+        <input type="text" id="charInput" maxlength="2" placeholder="letter" style="max-width:52px;">
+        <select id="shapeSelect">
+          <option value="star">★ Star</option>
+          <option value="heart">♥ Heart</option>
+          <option value="circle">● Circle</option>
+          <option value="flower">✿ Flower</option>
+          <option value="ring">◯ Ring</option>
+          <option value="square">■ Square</option>
+          <option value="drop">💧 Drop</option>
+        </select>
+      </div>
+      <div class="row">
+        <select id="fillSelect">
+          <option value="fill">Fill</option>
+          <option value="outline">Outline</option>
+        </select>
+        <input type="color" id="shapeColor" value="#fff700">
+        <button class="ghost" id="addReplace">＋ Add</button>
+      </div>
+      <div class="row"><label class="small">Shape size</label><input type="range" id="shapeSize" min="14" max="60" value="26"><span class="range-val" id="shapeSizeVal">26</span></div>
+      <div class="replace-list" id="replaceList"></div>
+      <div class="hint">Unlimited rules — add/remove instantly updates every added text.</div>
+    </div>
+  </div>
+
+  <div class="panel" id="t3">
+    <div class="subtabs" id="subtabs3">
+      <button class="subtab-btn active" data-sub="s3a">Text</button>
+      <button class="subtab-btn" data-sub="s3b">Insert images</button>
+      <button class="subtab-btn" data-sub="s3c">Resize all</button>
+    </div>
+
+    <div class="subpanel active" id="s3a">
+      <div class="row"><textarea id="itText" placeholder="Type your text... (Enter = new line)" rows="2"></textarea></div>
+      <div class="row">
+        <label class="small">Font</label>
+        <select id="itFont">
+          <option value="-apple-system,Arial,sans-serif" selected>Sans</option>
+          <option value="Georgia,serif">Serif</option>
+          <option value="'Courier New',monospace">Mono</option>
+          <option value="'Brush Script MT',cursive">Cursive</option>
+          <option value="auto">Cute</option>
+        </select>
+      </div>
+      <div class="row">
+        <label class="small">Align</label>
+        <select id="itAlign">
+          <option value="center">Center</option>
+          <option value="left">Left</option>
+          <option value="right">Right</option>
+          <option value="fill">Center fill width</option>
+          <option value="fillauto">Center fill length</option>
+        </select>
+      </div>
+      <div class="row"><label class="small">Size</label><input type="range" id="itSize" min="20" max="72" value="38"><span class="range-val" id="itSizeVal">38</span></div>
+      <div class="row"><label class="small">Letter</label><input type="range" id="itLetter" min="-2" max="20" value="2"><span class="range-val" id="itLetterVal">2</span></div>
+      <div class="row"><label class="small">Line</label><input type="range" id="itLine" min="0" max="40" value="8"><span class="range-val" id="itLineVal">8</span></div>
+      <div class="row"><label class="small">Text color</label><input type="color" id="itColor" value="#111111"></div>
+      <div class="hint">Preview updates automatically as you type / adjust. Press Enter for a manual new line — long lines still auto-wrap too.</div>
+    </div>
+
+    <div class="subpanel" id="s3b">
+      <div class="hint">Type your text in the "Text" tab first — each gap between words shows up here so you can insert an image.</div>
+      <div class="gap-list" id="gapList"></div>
+    </div>
+
+    <div class="subpanel" id="s3c">
+      <div class="section-title">Resize everything together (text + all images)</div>
+      <div class="row"><label class="small">Group scale</label><input type="range" id="groupScale" min="30" max="200" value="100"><span class="range-val" id="groupScaleVal">100%</span></div>
+      <div class="hint">Scales the text and every inserted image proportionally at once, from a single place.</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const stage = document.getElementById('stage');
+const bgLayer = document.getElementById('bgLayer');
+const dotLayer = document.getElementById('dotLayer');
+const polkaLayer = document.getElementById('polkaLayer');
+const neonLayer = document.getElementById('neonLayer');
+const imgtextLayer = document.getElementById('imgtextLayer');
+
+// ---- generic: show live value next to every range input ----
+document.querySelectorAll('input[type=range]').forEach(r=>{
+  const out = document.getElementById(r.id+'Val');
+  if(out) out.textContent = r.value;
+  r.addEventListener('input', ()=>{ if(out) out.textContent = r.value; });
+});
+
+document.querySelectorAll('.maintab-btn').forEach(b=>{
+  b.onclick=()=>{
+    document.querySelectorAll('.maintab-btn').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    document.getElementById(b.dataset.tab).classList.add('active');
+    document.getElementById('drawToggle').style.display = (b.dataset.tab==='t1' && bgLayer.style.backgroundImage) ? 'block' : 'none';
+  };
+});
+document.querySelectorAll('.subtabs').forEach(group=>{
+  group.querySelectorAll('.subtab-btn').forEach(b=>{
+    b.onclick=()=>{
+      group.querySelectorAll('.subtab-btn').forEach(x=>x.classList.remove('active'));
+      const panel = group.parentElement;
+      panel.querySelectorAll('.subpanel').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');
+      document.getElementById(b.dataset.sub).classList.add('active');
+    };
+  });
+});
+
+function chipGroup(sel, onChange){
+  document.querySelectorAll(sel+' .chip').forEach(c=>{
+    c.onclick=()=>{
+      document.querySelectorAll(sel+' .chip').forEach(x=>x.classList.remove('active'));
+      c.classList.add('active');
+      if(onChange) onChange(c.dataset.v);
+    };
+  });
+}
+
+const presets = [
+  {a:'#ff3fd0',b:'#ffe3f7'},
+  {a:'#fff700',b:'#fffbd6'},
+  {a:'#22d9ff',b:'#e2f9ff'},
+  {a:'#ff3fd0',b:'#22d9ff'},
+  {a:'#fff700',b:'#ff3fd0'},
+];
+function buildPresets(rowId, onPick){
+  const row = document.getElementById(rowId);
+  presets.forEach((p,i)=>{
+    const d = document.createElement('div');
+    d.className='preset'+(i===0?' active':'');
+    d.innerHTML=`<span style="background:${p.a}"></span><span style="background:${p.b}"></span>`;
+    d.onclick=()=>{ row.querySelectorAll('.preset').forEach(x=>x.classList.remove('active')); d.classList.add('active'); onPick(p); };
+    row.appendChild(d);
+  });
+}
+buildPresets('presetRow1', p=>{ document.getElementById('dotColor').value=p.a; repaintDots(); });
+buildPresets('presetRow2', p=>{ document.getElementById('neonFill').value=p.a; document.getElementById('neonStroke').value=p.b; });
+
+const exportFab = document.getElementById('exportFab');
+const exportMenu = document.getElementById('exportMenu');
+exportFab.onclick = (e)=>{ e.stopPropagation(); exportMenu.classList.toggle('open'); };
+document.addEventListener('click', (e)=>{
+  if(!exportMenu.contains(e.target) && e.target!==exportFab) exportMenu.classList.remove('open');
+});
+
+const bgFileInput = document.getElementById('bgFile');
+const uploadOverlay = document.getElementById('uploadOverlay');
+const uploadBtnMain = document.getElementById('uploadBtnMain');
+const replaceBtn = document.getElementById('replaceBtn');
+const drawToggle = document.getElementById('drawToggle');
+
+function openFilePicker(){ bgFileInput.click(); }
+uploadBtnMain.addEventListener('click', openFilePicker);
+replaceBtn.addEventListener('click', openFilePicker);
+
+let imgNaturalW = null, imgNaturalH = null;
+bgFileInput.addEventListener('change', e=>{
+  const f = e.target.files[0];
+  if(!f) return;
+  const reader = new FileReader();
+  reader.onload = ev=>{
+    const dataUrl = ev.target.result;
+    const img = new Image();
+    img.onload = ()=>{
+      imgNaturalW = img.naturalWidth;
+      imgNaturalH = img.naturalHeight;
+      stage.style.aspectRatio = imgNaturalW+'/'+imgNaturalH;
+      bgLayer.style.backgroundImage = `url(${dataUrl})`;
+      bgLayer.style.backgroundSize = 'cover';
+      uploadOverlay.style.display='none';
+      replaceBtn.style.display='block';
+      drawToggle.style.display='block';
+    };
+    img.src = dataUrl;
+  };
+  reader.readAsDataURL(f);
+});
+
+function hexToRgb(hex){
+  const h = hex.replace('#','');
+  const bigint = parseInt(h.length===3 ? h.split('').map(c=>c+c).join('') : h, 16);
+  return { r:(bigint>>16)&255, g:(bigint>>8)&255, b:bigint&255 };
+}
+function shapeSVG(shape, color, size, outline){
+  const stroke = outline ? color : 'none';
+  const fill = outline ? 'none' : color;
+  const sw = outline ? Math.max(2, size*0.12) : 0;
+  let inner='';
+  switch(shape){
+    case 'circle': inner=`<circle cx="50" cy="50" r="42" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>`; break;
+    case 'ring': inner=`<circle cx="50" cy="50" r="38" fill="none" stroke="${color}" stroke-width="8"/>`; break;
+    case 'square': inner=`<rect x="10" y="10" width="80" height="80" rx="0" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>`; break;
+    case 'heart': inner=`<path d="M50 88 C10 62 5 35 25 20 C38 10 50 22 50 32 C50 22 62 10 75 20 C95 35 90 62 50 88Z" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>`; break;
+    case 'star': inner=`<path d="M50 5 L61 38 L96 38 L67 59 L78 92 L50 71 L22 92 L33 59 L4 38 L39 38Z" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>`; break;
+    case 'flower': inner=`<g fill="${fill}" stroke="${stroke}" stroke-width="${sw}">
+        <circle cx="50" cy="26" r="17"/>
+        <circle cx="72.8" cy="42.6" r="17"/>
+        <circle cx="64.1" cy="69.4" r="17"/>
+        <circle cx="35.9" cy="69.4" r="17"/>
+        <circle cx="27.2" cy="42.6" r="17"/>
+        <circle cx="50" cy="50" r="13"/>
+      </g>`; break;
+    case 'drop': inner=`<path d="M50 6 C68 34 84 54 84 70 C84 89 68 96 50 96 C32 96 16 89 16 70 C16 54 32 34 50 6Z" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>`; break;
+    default: inner=`<circle cx="50" cy="50" r="42" fill="${fill}"/>`;
+  }
+  return `<svg width="${size}" height="${size}" viewBox="0 0 100 100" style="display:block;">${inner}</svg>`;
+}
+
+// ---- TAB1: DOT LAYER — reading-order scatter + manual draw ----
+let placedDots = [];
+let dotCountUserOverride = false;
+
+function currentDotSettings(){
+  const fontEl = document.getElementById('dotFont');
+  const textSizeEl = document.getElementById('dotTextSize');
+  return {
+    size: parseInt(document.getElementById('dotSize').value),
+    dotColor: document.getElementById('dotColor').value,
+    textColor: document.getElementById('dotTextColor').value,
+    shape: document.querySelector('#dotShapeRow .chip.active').dataset.v,
+    motion: document.querySelector('#dotMotionRow .chip.active').dataset.v,
+    font: fontEl ? fontEl.value : 'auto',
+    textSizePct: textSizeEl ? parseInt(textSizeEl.value) : 42
+  };
+}
+
+function applyMotionClass(el, motion){
+  el.classList.remove('m-pop','m-blink','m-float','m-shake','m-drop','m-rain');
+  el.style.animationDelay='';
+  el.style.animationIterationCount='';
+  el.style.animationDuration='';
+  const loopEl = document.getElementById('motionLoop');
+  const loopVal = loopEl ? parseInt(loopEl.value) : NaN;
+  const loop = (Number.isFinite(loopVal) && loopVal > 0) ? loopVal : 10;
+  if(motion==='pop'){ el.classList.add('m-pop'); el.style.animationDelay=(Math.random()*0.6)+'s'; el.style.animationIterationCount=loop; }
+  if(motion==='blink'){ el.classList.add('m-blink'); el.style.animationDelay=(Math.random()*1.5)+'s'; el.style.animationIterationCount=loop; }
+  if(motion==='float'){ el.classList.add('m-float'); el.style.animationDelay=(Math.random()*1.5)+'s'; el.style.animationIterationCount=loop; }
+  if(motion==='shake'){ el.classList.add('m-shake'); el.style.animationDelay=(Math.random()*1)+'s'; el.style.animationIterationCount=loop; }
+  if(motion==='drop'){
+    const sw = stage.clientWidth || 320, sh = stage.clientHeight || 320;
+    const finalLeftPct = parseFloat(el.style.left)||50, finalTopPct = parseFloat(el.style.top)||50;
+    const finalX = finalLeftPct/100*sw, finalY = finalTopPct/100*sh;
+    const pourX = sw*0.5, pourY = sh*0.05;
+    el.style.setProperty('--dx', (pourX-finalX)+'px');
+    el.style.setProperty('--dy', (pourY-finalY)+'px');
+    el.classList.add('m-drop');
+    el.style.animationDelay=(Math.random()*0.45)+'s';
+    el.style.animationDuration=(0.85+Math.random()*0.7)+'s';
+    el.style.animationIterationCount=1;
+  }
+  if(motion==='rain'){ el.classList.add('m-rain'); el.style.animationDelay=(Math.random()*1.6)+'s'; el.style.animationIterationCount=loop; }
+}
+
+function replayMotion(){
+  dotLayer.querySelectorAll('.dot-el').forEach(el=>{
+    const motion = document.querySelector('#dotMotionRow .chip.active').dataset.v;
+    el.classList.remove('m-pop','m-blink','m-float','m-shake','m-drop','m-rain');
+    void el.offsetWidth;
+    applyMotionClass(el, motion);
+  });
+}
+
+function drawSingleDot(el, leftPct, topPct, char){
+  const s = currentDotSettings();
+  el.className='draggable dot-el';
+  el.style.left = leftPct+'%'; el.style.top = topPct+'%';
+  el.style.width=s.size+'px'; el.style.height=s.size+'px';
+  el.style.transform='translate(-50%,-50%)';
+  el.style.display='flex'; el.style.alignItems='center'; el.style.justifyContent='center';
+  el.innerHTML = shapeSVG(s.shape, s.dotColor, s.size, s.shape==='ring');
+  if(char){
+    const t=document.createElement('div');
+    t.textContent=char;
+    t.style.position='absolute';t.style.color=s.textColor;t.style.fontSize=(s.size*(s.textSizePct/100))+'px';
+    t.style.fontWeight='700';
+    if(s.font && s.font!=='auto'){ t.style.fontFamily = s.font; }
+    el.appendChild(t);
+  }
+  applyMotionClass(el, s.motion);
+  makeDraggable(el);
+}
+
+function applyMotionToExisting(){
+  const s = currentDotSettings();
+  dotLayer.querySelectorAll('.dot-el').forEach(el=>applyMotionClass(el, s.motion));
+}
+
+function repaintDots(){
+  dotLayer.innerHTML='';
+  placedDots.forEach(pd=>{
+    const el = document.createElement('div');
+    drawSingleDot(el, pd.leftPct, pd.topPct, pd.char);
+    dotLayer.appendChild(el);
+  });
+}
+
+// scatter dots so reading order (left→right by index) is preserved, but position looks random/clustered/overlapping
+function scatterDots(){
+  const text = document.getElementById('dotText').value.replace(/\s+/g,'').trim();
+  const chars = text.length ? text.split('') : [];
+  const count = parseInt(document.getElementById('dotCount').value);
+  placedDots = [];
+  const n = Math.max(count, chars.length);
+  const bandCenter = 35 + Math.random()*30;
+  const slot = 92/Math.max(n,1);
+  for(let i=0;i<n;i++){
+    const baseLeft = 4 + slot*(i+0.5);
+    const jitter = (Math.random()-0.5) * slot * 0.7; // keep jitter smaller than slot so order is preserved
+    const leftPct = Math.min(97, Math.max(3, baseLeft + jitter));
+    const topPct = Math.min(94, Math.max(6, bandCenter + (Math.random()-0.5)*60));
+    placedDots.push({leftPct, topPct, char: chars[i] || null});
+  }
+  repaintDots();
+  renderPolka();
+}
+function clearDots(){ placedDots=[]; repaintDots(); }
+
+document.getElementById('shuffleBtn').onclick = scatterDots;
+document.getElementById('clearDotsBtn').onclick = clearDots;
+['dotColor','dotTextColor','dotSize','dotTextSize'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', ()=>{
+    const valEl = document.getElementById(id+'Val');
+    if(valEl) valEl.textContent = document.getElementById(id).value;
+    repaintDots();
+  });
+});
+document.getElementById('dotFont').addEventListener('change', repaintDots);
+document.getElementById('dotText').addEventListener('input', ()=>{
+  const text = document.getElementById('dotText').value.replace(/\s+/g,'').trim();
+  const chars = text.length ? text.split('') : [];
+  // auto-sync dot count to text length unless user manually raised it higher
+  const slider = document.getElementById('dotCount');
+  if(!dotCountUserOverride || parseInt(slider.value) < chars.length){
+    slider.value = Math.max(1, chars.length);
+    document.getElementById('dotCountVal').textContent = slider.value;
+  }
+  scatterDots();
+});
+document.getElementById('dotCount').addEventListener('input', ()=>{ dotCountUserOverride = true; scatterDots(); });
+chipGroup('#dotShapeRow', repaintDots);
+chipGroup('#dotMotionRow', applyMotionToExisting);
+document.getElementById('motionLoop').addEventListener('input', applyMotionToExisting);
+document.getElementById('playMotionBtn').addEventListener('click', replayMotion);
+document.querySelectorAll('.polka-toggle-chip').forEach(c=>{
+  c.onclick=()=>{
+    document.querySelectorAll('.polka-toggle-chip').forEach(x=>x.classList.remove('active'));
+    c.classList.add('active');
+    renderPolka();
+  };
+});
+document.querySelectorAll('.polka-shape-chip').forEach(c=>{
+  c.onclick=()=>{
+    document.querySelectorAll('.polka-shape-chip').forEach(x=>x.classList.remove('active'));
+    c.classList.add('active');
+    renderPolka();
+  };
+});
+
+let drawMode = false;
+drawToggle.addEventListener('click', ()=>{
+  drawMode = !drawMode;
+  drawToggle.classList.toggle('active', drawMode);
+  drawToggle.textContent = '✎ Draw mode: ' + (drawMode?'On':'Off');
+  dotLayer.classList.toggle('drawmode', drawMode);
+});
+stage.addEventListener('click', (e)=>{
+  if(!drawMode) return;
+  if(e.target.closest('.draggable')) return;
+  const rect = stage.getBoundingClientRect();
+  const leftPct = ((e.clientX-rect.left)/rect.width)*100;
+  const topPct = ((e.clientY-rect.top)/rect.height)*100;
+  const text = document.getElementById('dotText').value.replace(/\s+/g,'').trim();
+  const chars = text.length ? text.split('') : [];
+  const char = chars[placedDots.length % (chars.length||1)] || null;
+  placedDots.push({leftPct, topPct, char});
+  repaintDots();
+});
+
+function renderPolka(){
+  polkaLayer.innerHTML='';
+  const toggleActive = document.querySelector('.polka-toggle-chip.active');
+  const state = toggleActive ? toggleActive.dataset.v : 'on';
+  if(state!=='on') return;
+  const shapeActive = document.querySelector('.polka-shape-chip.active');
+  const shape = shapeActive ? shapeActive.dataset.v : 'circle';
+  const color = document.getElementById('polkaColor').value;
+  const size = parseInt(document.getElementById('polkaSize').value);
+  const spacing = parseInt(document.getElementById('polkaSpace').value);
+  const opacity = parseInt(document.getElementById('polkaOpacity').value)/100;
+  polkaLayer.style.opacity = opacity;
+  const stageSize = stage.clientWidth || 320;
+  const cols = Math.ceil(stageSize/spacing)+2;
+  const rows = cols;
+  for(let r=0;r<rows;r++){
+    for(let c=0;c<cols;c++){
+      const d=document.createElement('div');
+      d.style.position='absolute';
+      d.style.left=(c*spacing)+'px'; d.style.top=(r*spacing)+'px';
+      d.style.width=size+'px'; d.style.height=size+'px';
+      d.innerHTML=shapeSVG(shape,color,size,false);
+      polkaLayer.appendChild(d);
+    }
+  }
+}
+['polkaColor','polkaSize','polkaSpace','polkaOpacity'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', renderPolka);
+});
+
+function makeDraggable(el){
+  let sx,sy,ox,oy,dragging=false;
+  const start=(x,y)=>{
+    dragging=true;
+    const r = el.getBoundingClientRect();
+    const sr = stage.getBoundingClientRect();
+    sx=x; sy=y;
+    ox = r.left - sr.left + r.width/2;
+    oy = r.top - sr.top + r.height/2;
+  };
+  const move=(x,y)=>{
+    if(!dragging) return;
+    const sr = stage.getBoundingClientRect();
+    const nx = ox + (x-sx);
+    const ny = oy + (y-sy);
+    el.style.left = (nx/sr.width*100)+'%';
+    el.style.top = (ny/sr.height*100)+'%';
+  };
+  const end=()=>{dragging=false;};
+  el.addEventListener('touchstart', e=>{start(e.touches[0].clientX,e.touches[0].clientY);}, {passive:true});
+  el.addEventListener('touchmove', e=>{move(e.touches[0].clientX,e.touches[0].clientY);}, {passive:true});
+  el.addEventListener('touchend', end);
+  el.addEventListener('mousedown', e=>{start(e.clientX,e.clientY); e.preventDefault();});
+  window.addEventListener('mousemove', e=>move(e.clientX,e.clientY));
+  window.addEventListener('mouseup', end);
+}
+
+// ---- TAB2: NEON TEXT ----
+let replaceRules = [];
+let neonTexts = [];
+
+function addReplaceRule(){
+  const ch = document.getElementById('charInput').value;
+  if(!ch) return;
+  const shape = document.getElementById('shapeSelect').value;
+  const fillType = document.getElementById('fillSelect').value;
+  const color = document.getElementById('shapeColor').value;
+  const size = parseInt(document.getElementById('shapeSize').value);
+  replaceRules.push({char:ch, shape, fillType, color, size});
+  document.getElementById('charInput').value='';
+  renderReplaceList();
+  renderNeon();
+}
+document.getElementById('addReplace').onclick = addReplaceRule;
+
+function renderReplaceList(){
+  const list = document.getElementById('replaceList');
+  list.innerHTML='';
+  replaceRules.forEach((r,i)=>{
+    const d = document.createElement('div');
+    d.className='replace-item';
+    d.innerHTML = `<b>"${r.char}"</b> → ${r.shape} (${r.fillType}) <span style="width:14px;height:14px;border-radius:4px;display:inline-block;background:${r.color}"></span>
+      <button class="rm" data-i="${i}">✕</button>`;
+    d.querySelector('.rm').onclick = ()=>{ replaceRules.splice(i,1); renderReplaceList(); renderNeon(); };
+    list.appendChild(d);
+  });
+}
+
+document.getElementById('neonBoxToggle').onclick = function(){
+  const on = this.dataset.v==='off';
+  this.dataset.v = on?'on':'off';
+  this.classList.toggle('active', on);
+};
+document.getElementById('neonBoldToggle').onclick = function(){
+  const on = this.dataset.v==='off';
+  this.dataset.v = on?'on':'off';
+  this.classList.toggle('active', on);
+};
+document.getElementById('neonItalicToggle').onclick = function(){
+  const on = this.dataset.v==='off';
+  this.dataset.v = on?'on':'off';
+  this.classList.toggle('active', on);
+};
+
+document.getElementById('addNeonText').onclick = ()=>{
+  const text = document.getElementById('neonTextInput').value;
+  if(!text) return;
+  const fill = document.getElementById('neonFill').value;
+  const stroke = document.getElementById('neonStroke').value;
+  const strokeW = parseInt(document.getElementById('neonStrokeW').value);
+  const size = parseInt(document.getElementById('neonSize').value);
+  const font = document.getElementById('neonFont').value;
+  const bold = document.getElementById('neonBoldToggle').dataset.v==='on';
+  const italic = document.getElementById('neonItalicToggle').dataset.v==='on';
+  const box = document.getElementById('neonBoxToggle').dataset.v==='on';
+  const boxColor = document.getElementById('neonBoxColor').value;
+  const boxOpacity = parseInt(document.getElementById('neonBoxOpacity').value)/100;
+  const id = 'nt'+Date.now()+Math.floor(Math.random()*999);
+  neonTexts.push({id, text, fill, stroke, strokeW, size, font, bold, italic, box, boxColor, boxOpacity, left:30+Math.random()*10, top:30+Math.random()*20});
+  document.getElementById('neonTextInput').value='';
+  renderNeon();
+  renderNeonAddedList();
+};
+
+function renderCharOrText(ch, nt){
+  const rule = replaceRules.find(r=> r.char.toLowerCase() === ch.toLowerCase());
+  if(rule){
+    const wrap = document.createElement('span');
+    wrap.style.display='inline-block';
+    wrap.style.verticalAlign='middle';
+    wrap.innerHTML = shapeSVG(rule.shape, rule.color, rule.size, rule.fillType==='outline');
+    return wrap;
+  }
+  if(ch===' '){
+    const sp = document.createElement('span');
+    sp.innerHTML='&nbsp;';
+    return sp;
+  }
+  const span = document.createElement('span');
+  span.textContent = ch;
+  span.style.color = nt.fill;
+  const sw = nt.strokeW || 0;
+  span.style.textShadow = sw>0 ? `
+    -${sw}px -${sw}px 0 ${nt.stroke}, ${sw}px -${sw}px 0 ${nt.stroke},
+    -${sw}px ${sw}px 0 ${nt.stroke}, ${sw}px ${sw}px 0 ${nt.stroke},
+    -${sw}px 0 0 ${nt.stroke}, ${sw}px 0 0 ${nt.stroke},
+    0 -${sw}px 0 ${nt.stroke}, 0 ${sw}px 0 ${nt.stroke}` : 'none';
+  span.style.fontWeight= nt.bold ? '900' : '700';
+  span.style.fontStyle = nt.italic ? 'italic' : 'normal';
+  span.style.fontSize = nt.size+'px';
+  span.style.fontFamily = nt.font;
+  return span;
+}
+
+function renderNeon(){
+  neonLayer.innerHTML='';
+  neonTexts.forEach((nt,i)=>{
+    const box = document.createElement('div');
+    box.className='draggable';
+    box.style.left = nt.left+'%'; box.style.top = nt.top+'%';
+    box.style.transform='translate(-50%,-50%)';
+    box.style.display='flex';
+    box.style.flexWrap='wrap';
+    box.style.alignItems='center';
+    box.style.justifyContent='center';
+    box.style.maxWidth = '85%';
+    box.style.textAlign='center';
+    if(nt.box){
+      const rgb = hexToRgb(nt.boxColor||'#ffffff');
+      box.style.background = `rgba(${rgb.r},${rgb.g},${rgb.b},${nt.boxOpacity!=null?nt.boxOpacity:0.9})`;
+      box.style.padding = '6px 10px';
+      box.style.borderRadius = '0';
+      box.style.boxShadow = 'none';
+    }
+    [...nt.text].forEach(ch=>{
+      box.appendChild(renderCharOrText(ch, nt));
+    });
+    makeDraggable(box);
+    box.addEventListener('click', (e)=>{ e.stopPropagation(); selectNeonForEdit(i); });
+    neonLayer.appendChild(box);
+  });
+}
+
+function selectNeonForEdit(i){
+  document.querySelector('.maintab-btn[data-tab="t2"]').click();
+  document.querySelector('[data-sub="s2c"]').click();
+  renderNeonAddedList();
+  const item = document.querySelectorAll('#neonAddedList .added-item')[i];
+  if(item){
+    item.scrollIntoView({behavior:'smooth', block:'center'});
+    item.style.boxShadow = '0 0 0 3px var(--neon2)';
+    setTimeout(()=>{ item.style.boxShadow = '0 2px 10px rgba(150,120,200,.12)'; }, 1200);
+  }
+}
+
+function renderNeonAddedList(){
+  const list = document.getElementById('neonAddedList');
+  list.innerHTML='';
+  const emptyHint = document.getElementById('neonAddedEmptyHint');
+  if(emptyHint) emptyHint.style.display = neonTexts.length ? 'none' : 'block';
+  neonTexts.forEach((nt,i)=>{
+    const item = document.createElement('div');
+    item.className='added-item';
+    item.innerHTML = `
+      <div class="hd">
+        <input type="text" value="${nt.text.replace(/"/g,'&quot;')}" id="ntText${i}">
+        <button class="rm" id="ntRm${i}">✕</button>
+      </div>
+      <div class="row" style="margin-bottom:0;">
+        <label class="small">Fill</label><input type="color" id="ntFill${i}" value="${nt.fill}">
+        <label class="small">Outline</label><input type="color" id="ntStroke${i}" value="${nt.stroke}">
+      </div>
+      <div class="row" style="margin-bottom:0;">
+        <label class="small">Size</label><input type="range" id="ntSize${i}" min="18" max="72" value="${nt.size}"><span class="range-val" id="ntSize${i}Val">${nt.size}</span>
+      </div>
+      <div class="row" style="margin-bottom:0;">
+        <label class="small">Outline w</label><input type="range" id="ntStrokeW${i}" min="0" max="6" value="${nt.strokeW||0}"><span class="range-val" id="ntStrokeW${i}Val">${nt.strokeW||0}</span>
+      </div>
+      <div class="row" style="margin-bottom:0;">
+        <button class="chip${nt.box?' active':''}" id="ntBox${i}" data-v="${nt.box?'on':'off'}">🗨 Text box</button>
+        <input type="color" id="ntBoxColor${i}" value="${nt.boxColor||'#ffffff'}">
+      </div>`;
+    item.querySelector('#ntText'+i).addEventListener('input', e=>{ neonTexts[i].text = e.target.value; renderNeon(); });
+    item.querySelector('#ntFill'+i).addEventListener('input', e=>{ neonTexts[i].fill = e.target.value; renderNeon(); });
+    item.querySelector('#ntStroke'+i).addEventListener('input', e=>{ neonTexts[i].stroke = e.target.value; renderNeon(); });
+    const sizeRange = item.querySelector('#ntSize'+i);
+    sizeRange.addEventListener('input', e=>{
+      neonTexts[i].size = parseInt(e.target.value);
+      document.getElementById('ntSize'+i+'Val').textContent = e.target.value;
+      renderNeon();
+    });
+    const strokeWRange = item.querySelector('#ntStrokeW'+i);
+    strokeWRange.addEventListener('input', e=>{
+      neonTexts[i].strokeW = parseInt(e.target.value);
+      document.getElementById('ntStrokeW'+i+'Val').textContent = e.target.value;
+      renderNeon();
+    });
+    item.querySelector('#ntBox'+i).addEventListener('click', function(){
+      const on = this.dataset.v==='off';
+      this.dataset.v = on?'on':'off';
+      this.classList.toggle('active', on);
+      neonTexts[i].box = on;
+      renderNeon();
+    });
+    item.querySelector('#ntBoxColor'+i).addEventListener('input', e=>{ neonTexts[i].boxColor = e.target.value; renderNeon(); });
+    item.querySelector('#ntRm'+i).addEventListener('click', ()=>{
+      neonTexts.splice(i,1); renderNeon(); renderNeonAddedList();
+    });
+    list.appendChild(item);
+  });
+}
+
+// ---- TAB3: IMAGE-IN-TEXT ----
+let itState = { text:'', align:'center', gaps:[], groupScale:100, font:'-apple-system,Arial,sans-serif' };
+
+function flattenWords(text){
+  return text.split('\n').flatMap(line=>line.split(' ').filter(w=>w.length));
+}
+
+function readItSettings(){
+  itState.text = document.getElementById('itText').value.replace(/\r/g,'');
+  itState.align = document.getElementById('itAlign').value;
+  itState.size = document.getElementById('itSize').value;
+  itState.letter = document.getElementById('itLetter').value;
+  itState.line = document.getElementById('itLine').value;
+  itState.color = document.getElementById('itColor').value;
+  itState.font = document.getElementById('itFont').value;
+  const words = flattenWords(itState.text);
+  itState.gaps = words.map((w,i)=> itState.gaps[i] || {img:null, size:100, radius:0, borderW:0, borderColor:'#ffffff', heightPct:100});
+}
+
+['itText','itAlign','itSize','itLetter','itLine','itColor','itFont'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', ()=>{
+    const prevWordCount = flattenWords(itState.text).length;
+    readItSettings();
+    const words = flattenWords(itState.text);
+    if(words.length !== prevWordCount) buildGapList(words);
+    renderImgText();
+  });
+});
+
+document.getElementById('groupScale').addEventListener('input', e=>{
+  itState.groupScale = parseInt(e.target.value);
+  document.getElementById('groupScaleVal').textContent = e.target.value+'%';
+  renderImgText();
+});
+
+function buildGapList(words){
+  const list = document.getElementById('gapList');
+  list.innerHTML='';
+  words.forEach((w,i)=>{
+    const row = document.createElement('div');
+    row.className='gap-item';
+    const g = itState.gaps[i];
+    row.innerHTML = `
+      <div class="top">
+        <div class="thumb" id="thumb${i}" style="${g.img?`background-image:url(${g.img})`:''}"></div>
+        <div class="lbl">after "${w}"</div>
+        <button class="file-btn" type="button" id="gapBtn${i}">Choose image</button>
+        <input type="file" accept="image/*" id="gapInput${i}">
+      </div>
+      <div class="row" style="margin-bottom:0;">
+        <label class="small">Size</label><input type="range" id="gapSize${i}" min="40" max="220" value="${g.size}"><span class="range-val" id="gapSize${i}Val">${g.size}</span>
+        <label class="small">Round</label><input type="range" id="gapRadius${i}" min="0" max="50" value="${g.radius}"><span class="range-val" id="gapRadius${i}Val">${g.radius}</span>
+      </div>
+      <div class="row" style="margin-bottom:0;">
+        <label class="small">Height</label><input type="range" id="gapHeight${i}" min="30" max="100" value="${g.heightPct!=null?g.heightPct:100}"><span class="range-val" id="gapHeight${i}Val">${g.heightPct!=null?g.heightPct:100}</span>
+        <label class="small">Border</label><input type="range" id="gapBorderW${i}" min="0" max="10" value="${g.borderW}"><span class="range-val" id="gapBorderW${i}Val">${g.borderW}</span>
+        <input type="color" id="gapBorderColor${i}" value="${g.borderColor}">
+      </div>`;
+    row.querySelector('#gapBtn'+i).onclick = ()=> row.querySelector('#gapInput'+i).click();
+    row.querySelector('#gapInput'+i).onchange = e=>{
+      const f = e.target.files[0]; if(!f) return;
+      const reader = new FileReader();
+      reader.onload = ev=>{
+        itState.gaps[i].img = ev.target.result;
+        document.getElementById('thumb'+i).style.backgroundImage = `url(${ev.target.result})`;
+        renderImgText();
+      };
+      reader.readAsDataURL(f);
+    };
+    row.querySelector('#gapSize'+i).oninput = e=>{ itState.gaps[i].size = parseInt(e.target.value); document.getElementById('gapSize'+i+'Val').textContent=e.target.value; renderImgText(); };
+    row.querySelector('#gapRadius'+i).oninput = e=>{ itState.gaps[i].radius = parseInt(e.target.value); document.getElementById('gapRadius'+i+'Val').textContent=e.target.value; renderImgText(); };
+    row.querySelector('#gapHeight'+i).oninput = e=>{ itState.gaps[i].heightPct = parseInt(e.target.value); document.getElementById('gapHeight'+i+'Val').textContent=e.target.value; renderImgText(); };
+    row.querySelector('#gapBorderW'+i).oninput = e=>{ itState.gaps[i].borderW = parseInt(e.target.value); document.getElementById('gapBorderW'+i+'Val').textContent=e.target.value; renderImgText(); };
+    row.querySelector('#gapBorderColor'+i).oninput = e=>{ itState.gaps[i].borderColor = e.target.value; renderImgText(); };
+    list.appendChild(row);
+  });
+}
+
+function renderImgText(){
+  imgtextLayer.innerHTML='';
+  if(!itState.text.trim()) return;
+  const scale = (itState.groupScale||100)/100;
+  const lines = itState.text.split('\n');
+  const isFillAuto = itState.align==='fillauto';
+  const outer = document.createElement('div');
+  outer.style.position='absolute';
+  outer.style.top='50%'; outer.style.left='50%'; outer.style.transform='translate(-50%,-50%)';
+  outer.style.maxWidth='90%';
+  outer.style.width = isFillAuto ? 'auto' : '90%';
+  outer.style.display='flex';
+  outer.style.flexDirection='column';
+  outer.style.gap=(itState.line*scale)+'px';
+  if(itState.align==='center') outer.style.alignItems='center';
+  if(itState.align==='left') outer.style.alignItems='flex-start';
+  if(itState.align==='right') outer.style.alignItems='flex-end';
+  if(itState.align==='fill') outer.style.alignItems='stretch';
+  if(isFillAuto) outer.style.alignItems='center';
+
+  let wordIndex = 0;
+  const wraps = [];
+  lines.forEach(line=>{
+    const words = line.split(' ').filter(w=>w.length);
+    const wrap = document.createElement('div');
+    wrap.style.width = isFillAuto ? 'auto' : '100%';
+    wrap.style.maxWidth='100%';
+    wrap.style.display='flex';
+    wrap.style.flexWrap = isFillAuto ? 'nowrap' : 'wrap';
+    wrap.style.alignItems='center';
+    wrap.style.gap=(itState.line*scale)+'px '+Math.max(4,itState.letter*scale)+'px';
+    if(itState.align==='center') wrap.style.justifyContent='center';
+    if(itState.align==='left') wrap.style.justifyContent='flex-start';
+    if(itState.align==='right') wrap.style.justifyContent='flex-end';
+    if(itState.align==='fill'){ wrap.style.justifyContent='space-between'; }
+    if(isFillAuto){ wrap.style.justifyContent = words.length>1 ? 'space-between' : 'center'; }
+
+    words.forEach(w=>{
+      const wSpan = document.createElement('span');
+      wSpan.textContent = w;
+      wSpan.style.fontSize = (itState.size*scale)+'px';
+      wSpan.style.fontWeight='800';
+      wSpan.style.color = itState.color;
+      wSpan.style.letterSpacing = (itState.letter*scale)+'px';
+      wSpan.style.whiteSpace='nowrap';
+      if(itState.font && itState.font!=='auto'){ wSpan.style.fontFamily = itState.font; }
+      wrap.appendChild(wSpan);
+      const g = itState.gaps[wordIndex];
+      if(g && g.img){
+        const h = (parseInt(itState.size)*(g.size/100))*scale;
+        const heightPct = (g.heightPct!=null ? g.heightPct : 100)/100;
+        const visH = h*heightPct;
+        const box = document.createElement('div');
+        box.style.display='inline-flex';
+        box.style.flex='none';
+        box.style.alignItems='center';
+        box.style.justifyContent='center';
+        box.style.verticalAlign='middle';
+        box.style.height = visH+'px';
+        box.style.overflow='hidden';
+        box.style.borderRadius = (g.radius*scale)+'px';
+        box.style.border = g.borderW>0 ? `${g.borderW*scale}px solid ${g.borderColor}` : 'none';
+        const im = document.createElement('img');
+        im.src = g.img;
+        im.style.height = h+'px';
+        im.style.width='auto';
+        im.style.maxWidth='none';
+        im.style.flex='none';
+        im.style.display='block';
+        if(isFillAuto && !im.complete){
+          im.addEventListener('load', ()=>{ if(itState.align==='fillauto') renderImgText(); }, {once:true});
+        }
+        box.appendChild(im);
+        wrap.appendChild(box);
+      }
+      wordIndex++;
+    });
+    outer.appendChild(wrap);
+    wraps.push(wrap);
+  });
+  imgtextLayer.appendChild(outer);
+
+  if(isFillAuto){
+    // measure natural width of the longest line (text + any inserted images), then
+    // stretch every line to that same width so words/images space out evenly (space-between)
+    let maxW = 0;
+    wraps.forEach(w=>{ maxW = Math.max(maxW, w.scrollWidth); });
+    const stageW = stage.clientWidth || 320;
+    const capped = Math.min(maxW, stageW*0.9);
+    outer.style.width = capped+'px';
+    wraps.forEach(w=>{ w.style.width='100%'; });
+  }
+}
+
+const expStatus = document.getElementById('expStatus');
+function setStatus(s){ expStatus.textContent = s; }
+
+function nextFrame(){ return new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))); }
+async function captureCanvas(){
+  const hasPhoto = !!bgLayer.style.backgroundImage;
+  if(!hasPhoto){ stage.style.backgroundImage='none'; stage.style.backgroundColor='transparent'; }
+  await nextFrame();
+  let scale = 2;
+  if(hasPhoto && imgNaturalW && stage.clientWidth > 0){
+    const computed = imgNaturalW / stage.clientWidth;
+    if(isFinite(computed) && computed > 0){ scale = Math.min(Math.max(computed, 0.5), 6); }
+  }
+  let canvas;
+  try{
+    canvas = await html2canvas(stage, {backgroundColor:null, useCORS:true, scale});
+  }catch(err){
+    canvas = await html2canvas(stage, {backgroundColor:null, useCORS:true, scale:2});
+  }
+  if(!hasPhoto){ stage.style.backgroundImage=''; stage.style.backgroundColor=''; }
+  return canvas;
+}
+document.getElementById('expPng').onclick = async ()=>{
+  setStatus('Exporting PNG...');
+  try{
+    const c = await captureCanvas();
+    const a=document.createElement('a'); a.download='neonmoon.png'; a.href=c.toDataURL('image/png'); a.click();
+    setStatus('Done! PNG downloaded.');
+  }catch(err){ setStatus('Export failed, please try again.'); }
+};
+document.getElementById('expJpg').onclick = async ()=>{
+  setStatus('Exporting JPG...');
+  try{
+    const c = await captureCanvas();
+    const a=document.createElement('a'); a.download='neonmoon.jpg'; a.href=c.toDataURL('image/jpeg',0.92); a.click();
+    setStatus('Done! JPG downloaded.');
+  }catch(err){ setStatus('Export failed, please try again.'); }
+};
+
+document.getElementById('expGif').onclick = async ()=>{
+  setStatus('Rendering motion GIF...');
+  try{
+    const gif = new GIF({workers:2, quality:10, width:stage.clientWidth*2, height:stage.clientHeight*2, workerScript:'https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js'});
+    const frames = 14;
+    for(let i=0;i<frames;i++){
+      const c = await captureCanvas();
+      gif.addFrame(c, {delay:110});
+      await new Promise(r=>setTimeout(r,90));
+    }
+    gif.on('finished', blob=>{
+      const a=document.createElement('a'); a.download='neonmoon-motion.gif'; a.href=URL.createObjectURL(blob); a.click();
+      setStatus('Done! Motion GIF downloaded.');
+    });
+    gif.render();
+  }catch(err){ setStatus('GIF render failed, please try again.'); }
+};
+
+let beforeSnapshot = null;
+document.getElementById('expBA').onclick = async ()=>{
+  if(!beforeSnapshot){
+    beforeSnapshot = await captureCanvas();
+    setStatus('"Before" saved. Keep editing, then tap again to build the GIF.');
+    return;
+  }
+  setStatus('Building Before→After GIF...');
+  try{
+    const after = await captureCanvas();
+    const gif = new GIF({workers:2, quality:10, width:stage.clientWidth*2, height:stage.clientHeight*2, workerScript:'https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js'});
+    gif.addFrame(beforeSnapshot, {delay:900});
+    gif.addFrame(after, {delay:900});
+    gif.on('finished', blob=>{
+      const a=document.createElement('a'); a.download='neonmoon-before-after.gif'; a.href=URL.createObjectURL(blob); a.click();
+      setStatus('Done! Before→After GIF downloaded.');
+      beforeSnapshot = null;
+    });
+    gif.render();
+  }catch(err){ setStatus('GIF build failed.'); }
+};
+</script>
+</body>
+</html>
