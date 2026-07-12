@@ -613,9 +613,9 @@ document.querySelectorAll('input[type=range]').forEach(r=>{
   r.addEventListener('input', ()=>{ if(out) out.textContent = r.value; });
 });
 
-document.querySelectorAll('.maintab-btn').forEach(b=>{
+document.querySelectorAll('.maintab-btn[data-tab]').forEach(b=>{
   b.onclick=()=>{
-    document.querySelectorAll('.maintab-btn').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.maintab-btn[data-tab]').forEach(x=>x.classList.remove('active'));
     document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
     b.classList.add('active');
     document.getElementById(b.dataset.tab).classList.add('active');
