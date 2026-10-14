@@ -82,7 +82,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Gaegu:wght@400;700&family=Jua&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Gaegu:wght@400;700&family=Jua&family=Pinyon+Script&display=swap" rel="stylesheet">
 <style>
 :root{
   --neon1:#ffa8d8; --neon1-light:#fff0f8;
@@ -332,6 +332,29 @@ input[type=file]{position:absolute;width:1px;height:1px;padding:0;margin:-1px;ov
 }
 .m-drop{animation:dropRollAnim 1.05s ease-out both;}
 .m-rain{animation:rainAnim 1.6s linear infinite;}
+
+/* Mobile editor layout: fixed working area, scrollable tools, bottom navigation */
+.mobile-view-controls{display:none;align-items:center;justify-content:center;gap:9px;margin:10px auto 0}
+.mobile-view-controls button{background:#fff;border:1px solid #ddd5e1;border-radius:12px;padding:7px 15px;font-weight:800;color:#393043;min-height:36px}
+#viewZoomLabel{min-width:45px;text-align:center;font-size:12px;font-weight:800}
+@media(max-width:700px){
+ html,body{height:100%;overflow:hidden;overscroll-behavior:none}
+ .app{height:100dvh;min-height:0;max-width:none;overflow:hidden;padding-bottom:env(safe-area-inset-bottom);box-sizing:border-box}
+ .appbar{flex:none;min-height:48px}
+ .breadcrumb-bar,.tabline-bar{display:none!important}
+ .stage-wrap{flex:1 1 auto;min-height:125px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 10px 5px;overflow:auto;overscroll-behavior:contain}
+ .stage{flex:none;max-width:min(88vw, 43dvh)!important;max-height:calc(100% - 86px)!important;box-sizing:border-box;transform:scale(var(--view-zoom,1));transform-origin:center center}
+ .stage-caption{display:none}
+ .mobile-view-controls{display:flex;flex:none;position:relative;z-index:9}
+ .undo-redo-row{flex:none;margin:5px 0 0}
+ .maintabs{order:3;flex:none;position:relative;z-index:20;background:#fff;padding:7px 8px calc(8px + env(safe-area-inset-bottom));border-top:1px solid #eee3ef;box-shadow:0 -4px 16px #27152a15;gap:5px}
+ .maintab-btn{min-width:0;font-size:clamp(9px,2.7vw,12px);padding:12px 2px;border-radius:13px;white-space:nowrap}
+ .panel{order:2;flex:0 1 38dvh;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:10px 14px 18px;background:#fff;border-radius:18px 18px 0 0}
+ .panel.active{display:block}
+ .subtabs{position:sticky;top:-10px;background:#fff;z-index:12;padding-top:5px}
+ .export-menu{position:fixed;top:52px;right:10px;z-index:1000}
+ input,select,textarea{font-size:16px!important}
+}
 </style>
 </head>
 <body>
@@ -369,7 +392,6 @@ input[type=file]{position:absolute;width:1px;height:1px;padding:0;margin:-1px;ov
     <button type="button" class="maintab-btn bg-menu-btn" id="bgMenuBtn">📷 Upload</button>
     <button class="maintab-btn active" data-tab="t1">Dot & Text</button>
     <button class="maintab-btn" data-tab="t2">Neon Text</button>
-    <button class="maintab-btn" data-tab="t3">Text + Image</button>
     <div class="bg-menu" id="bgMenu">
       <button type="button" id="bgMenuImage">📷 Choose image</button>
       <label class="bg-menu-color-row" id="bgMenuColor">🎨 Choose color <input type="color" id="bgColorInput" value="#ffe3f7"></label>
@@ -385,6 +407,12 @@ input[type=file]{position:absolute;width:1px;height:1px;padding:0;margin:-1px;ov
       <div id="imgtextLayer"></div>
       <div id="neonLayer"></div>
       <input type="file" id="bgFile" accept="image/*">
+    </div>
+    <div class="mobile-view-controls" aria-label="Image view controls">
+      <button type="button" id="viewMinus" aria-label="Zoom out">−</button>
+      <button type="button" id="viewFit">Fit</button>
+      <span id="viewZoomLabel">100%</span>
+      <button type="button" id="viewPlus" aria-label="Zoom in">+</button>
     </div>
     <div class="undo-redo-row">
       <button type="button" id="undoBtn" title="Undo">↺</button>
@@ -411,6 +439,8 @@ input[type=file]{position:absolute;width:1px;height:1px;padding:0;margin:-1px;ov
           <option value="auto" selected>Cute</option>
           <option value="-apple-system,Arial,sans-serif">Sans</option>
           <option value="Georgia,serif">Serif</option>
+          <option value="'Arial Narrow','Liberation Sans Narrow',Arial,sans-serif">Arial Narrow</option>
+          <option value="'Pinyon Script',cursive">Pinyon Script</option>
           <option value="'Courier New',monospace">Mono</option>
           <option value="'Brush Script MT',cursive">Cursive</option>
         </select>
@@ -492,6 +522,8 @@ input[type=file]{position:absolute;width:1px;height:1px;padding:0;margin:-1px;ov
         <select id="neonFont">
           <option value="-apple-system,Arial,sans-serif">Sans</option>
           <option value="Georgia,serif">Serif</option>
+          <option value="'Arial Narrow','Liberation Sans Narrow',Arial,sans-serif">Arial Narrow</option>
+          <option value="'Pinyon Script',cursive">Pinyon Script</option>
           <option value="'Courier New',monospace">Mono</option>
           <option value="'Brush Script MT',cursive">Cursive</option>
         </select>
@@ -507,7 +539,7 @@ input[type=file]{position:absolute;width:1px;height:1px;padding:0;margin:-1px;ov
       <div class="row">
         <button class="chip" id="neonBoxToggle" data-v="off">🗨 Text box</button>
         <input type="color" id="neonBoxColor" value="#ffffff">
-        <input type="range" id="neonBoxOpacity" min="0" max="100" value="90" style="max-width:80px;"><span class="range-val" id="neonBoxOpacityVal">90</span>
+        <input type="range" id="neonBoxOpacity" min="0" max="100" value="100" style="max-width:80px;"><span class="range-val" id="neonBoxOpacityVal">100</span>
       </div>
       <button class="primary" id="addNeonText">＋ Add text (then drag on photo)</button>
       <div class="hint">Tap & drag text right on the preview to move it. Long text auto-wraps to the next line. Tap an added text on the photo to jump to it in Layers.</div>
@@ -547,7 +579,7 @@ input[type=file]{position:absolute;width:1px;height:1px;padding:0;margin:-1px;ov
     </div>
   </div>
 
-  <div class="panel" id="t3">
+  <div class="panel" id="t3" hidden aria-hidden="true" style="display:none!important">
     <div class="subtabs" id="subtabs3">
       <button class="subtab-btn active" data-sub="s3a">Text</button>
       <button class="subtab-btn" data-sub="s3b">Insert images</button>
@@ -561,6 +593,8 @@ input[type=file]{position:absolute;width:1px;height:1px;padding:0;margin:-1px;ov
         <select id="itFont">
           <option value="-apple-system,Arial,sans-serif" selected>Sans</option>
           <option value="Georgia,serif">Serif</option>
+          <option value="'Arial Narrow','Liberation Sans Narrow',Arial,sans-serif">Arial Narrow</option>
+          <option value="'Pinyon Script',cursive">Pinyon Script</option>
           <option value="'Courier New',monospace">Mono</option>
           <option value="'Brush Script MT',cursive">Cursive</option>
           <option value="auto">Cute</option>
@@ -605,6 +639,8 @@ const dotLayer = document.getElementById('dotLayer');
 const polkaLayer = document.getElementById('polkaLayer');
 const neonLayer = document.getElementById('neonLayer');
 const imgtextLayer = document.getElementById('imgtextLayer');
+// Text + Image retired: keep legacy controls in DOM for compatibility, disable its output.
+imgtextLayer.style.display = 'none';
 
 // ---- generic: show live value next to every range input ----
 document.querySelectorAll('input[type=range]').forEach(r=>{
@@ -1098,14 +1134,16 @@ function renderNeon(){
     box.style.left = nt.left+'%'; box.style.top = nt.top+'%';
     box.style.transform='translate(-50%,-50%)';
     box.style.display='flex';
-    box.style.flexWrap='wrap';
+    box.style.flexWrap='nowrap';
+    box.style.whiteSpace='pre';
+    box.style.width='max-content';
     box.style.alignItems='center';
     box.style.justifyContent='center';
-    box.style.maxWidth = '85%';
+    box.style.maxWidth = 'none';
     box.style.textAlign='center';
     if(nt.box){
       const rgb = hexToRgb(nt.boxColor||'#ffffff');
-      box.style.background = `rgba(${rgb.r},${rgb.g},${rgb.b},${nt.boxOpacity!=null?nt.boxOpacity:0.9})`;
+      box.style.background = `rgba(${rgb.r},${rgb.g},${rgb.b},${nt.boxOpacity!=null?nt.boxOpacity:1})`;
       box.style.padding = '6px 10px';
       box.style.borderRadius = '0';
       box.style.boxShadow = 'none';
@@ -1375,98 +1413,97 @@ const expStatus = document.getElementById('expStatus');
 function setStatus(s){ expStatus.textContent = s; }
 
 function nextFrame(){ return new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))); }
-async function captureCanvas(forceNoBg){
-  if(typeof html2canvas === 'undefined'){
-    throw new Error('Export library did not load (check your internet connection) — please try again.');
-  }
+async function captureCanvas(forceNoBg=false){
+  if(typeof html2canvas !== 'function') throw new Error('html2canvas is unavailable');
   const hasBg = hasBackground() && !forceNoBg;
-  let prevImg, prevColor;
-  if(!hasBg){
-    prevImg = bgLayer.style.backgroundImage; prevColor = bgLayer.style.backgroundColor;
-    bgLayer.style.backgroundImage='none'; bgLayer.style.backgroundColor='transparent';
-    stage.style.backgroundImage='none'; stage.style.backgroundColor='transparent';
-  }
-  await nextFrame();
-  let scale = 2;
-  if(hasBg && imgNaturalW && stage.clientWidth > 0){
-    const computed = imgNaturalW / stage.clientWidth;
-    if(isFinite(computed) && computed > 0){ scale = Math.min(Math.max(computed, 0.5), 6); }
-  }
-  let canvas;
-  try{
-    canvas = await html2canvas(stage, {backgroundColor:null, useCORS:true, scale});
-  }catch(err){
-    canvas = await html2canvas(stage, {backgroundColor:null, useCORS:true, scale:2});
-  }
-  if(!hasBg){
-    bgLayer.style.backgroundImage=prevImg||''; bgLayer.style.backgroundColor=prevColor||'';
-    stage.style.backgroundImage=''; stage.style.backgroundColor='';
-  }
-  return canvas;
-}
-document.getElementById('expPng').onclick = async ()=>{
-  setStatus('Exporting PNG...');
-  try{
-    const c = await captureCanvas();
-    const a=document.createElement('a'); a.download='neonmoon.png'; a.href=c.toDataURL('image/png'); a.click();
-    setStatus('Done! PNG downloaded.');
-  }catch(err){ setStatus('Export failed, please try again.'); }
-};
-document.getElementById('expTransparent').onclick = async ()=>{
-  setStatus('Exporting transparent PNG...');
-  try{
-    const c = await captureCanvas(true);
-    const a=document.createElement('a'); a.download='neonmoon-transparent.png'; a.href=c.toDataURL('image/png'); a.click();
-    setStatus('Done! Transparent PNG downloaded.');
-  }catch(err){ setStatus('Export failed, please try again.'); }
-};
-document.getElementById('expJpg').onclick = async ()=>{
-  setStatus('Exporting JPG...');
-  try{
-    const c = await captureCanvas();
-    const a=document.createElement('a'); a.download='neonmoon.jpg'; a.href=c.toDataURL('image/jpeg',0.92); a.click();
-    setStatus('Done! JPG downloaded.');
-  }catch(err){ setStatus('Export failed, please try again.'); }
-};
-
-document.getElementById('expGif').onclick = async ()=>{
-  setStatus('Rendering motion GIF...');
-  try{
-    const gif = new GIF({workers:2, quality:10, width:stage.clientWidth*2, height:stage.clientHeight*2, workerScript:__gifWorkerBlobUrl()});
-    const frames = 14;
-    for(let i=0;i<frames;i++){
-      const c = await captureCanvas();
-      gif.addFrame(c, {delay:110});
-      await new Promise(r=>setTimeout(r,90));
+  const old = {bgImage:bgLayer.style.backgroundImage,bgColor:bgLayer.style.backgroundColor,stageImage:stage.style.backgroundImage,stageColor:stage.style.backgroundColor};
+  try {
+    if(!hasBg){
+      bgLayer.style.backgroundImage='none'; bgLayer.style.backgroundColor='transparent';
+      stage.style.backgroundImage='none'; stage.style.backgroundColor='transparent';
     }
-    gif.on('finished', blob=>{
-      const a=document.createElement('a'); a.download='neonmoon-motion.gif'; a.href=URL.createObjectURL(blob); a.click();
-      setStatus('Done! Motion GIF downloaded.');
-    });
-    gif.render();
-  }catch(err){ setStatus('GIF render failed, please try again.'); }
-};
-
-let beforeSnapshot = null;
-document.getElementById('expBA').onclick = async ()=>{
-  if(!beforeSnapshot){
-    beforeSnapshot = await captureCanvas();
-    setStatus('"Before" saved. Keep editing, then tap again to build the GIF.');
-    return;
+    await document.fonts?.ready;
+    await nextFrame();
+    let scale=2;
+    if(hasBg && imgNaturalW && stage.clientWidth>0){
+      const ratio=imgNaturalW/stage.clientWidth;
+      if(Number.isFinite(ratio)&&ratio>0) scale=Math.min(Math.max(ratio,0.5),6);
+    }
+    const c=await html2canvas(stage,{backgroundColor:null,useCORS:true,allowTaint:false,scale,logging:false,imageTimeout:15000});
+    if(!c.width||!c.height) throw new Error('Captured canvas is empty');
+    return c;
+  } finally {
+    bgLayer.style.backgroundImage=old.bgImage; bgLayer.style.backgroundColor=old.bgColor;
+    stage.style.backgroundImage=old.stageImage; stage.style.backgroundColor=old.stageColor;
   }
-  setStatus('Building Before→After GIF...');
+}
+function canvasBlob(canvas,type,quality){
+  return new Promise((resolve,reject)=>{
+    try {canvas.toBlob(blob=>blob?resolve(blob):reject(new Error('Canvas could not be encoded (possibly a cross-origin image)')),type,quality);}
+    catch(e){reject(e);}
+  });
+}
+function saveBlob(blob,filename){
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download=filename;
+  a.style.display='none'; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),60000);
+}
+function exportError(err){console.error('NeonMoon export failed:',err);setStatus('Export failed: '+(err?.message||String(err)));}
+async function exportStill(filename,type,transparent=false){
+  exportMenu.classList.remove('open'); setStatus('Exporting '+filename+'...');
   try{
-    const after = await captureCanvas();
-    const gif = new GIF({workers:2, quality:10, width:stage.clientWidth*2, height:stage.clientHeight*2, workerScript:__gifWorkerBlobUrl()});
-    gif.addFrame(beforeSnapshot, {delay:900});
-    gif.addFrame(after, {delay:900});
-    gif.on('finished', blob=>{
-      const a=document.createElement('a'); a.download='neonmoon-before-after.gif'; a.href=URL.createObjectURL(blob); a.click();
-      setStatus('Done! Before→After GIF downloaded.');
-      beforeSnapshot = null;
-    });
+    const canvas=await captureCanvas(transparent);
+    if(type==='image/jpeg'){
+      const flat=document.createElement('canvas');flat.width=canvas.width;flat.height=canvas.height;
+      const ctx=flat.getContext('2d');ctx.fillStyle='#ffffff';ctx.fillRect(0,0,flat.width,flat.height);ctx.drawImage(canvas,0,0);
+      saveBlob(await canvasBlob(flat,type,0.92),filename);
+    } else saveBlob(await canvasBlob(canvas,type),filename);
+    setStatus('Downloaded '+filename);
+  }catch(err){exportError(err);}
+}
+document.getElementById('expPng').onclick=()=>exportStill('neonmoon.png','image/png');
+document.getElementById('expTransparent').onclick=()=>exportStill('neonmoon-transparent.png','image/png',true);
+document.getElementById('expJpg').onclick=()=>exportStill('neonmoon.jpg','image/jpeg');
+function makeGif(width,height){
+  if(typeof GIF!=='function') throw new Error('GIF encoder is unavailable');
+  return new GIF({workers:2,quality:10,width,height,workerScript:__gifWorkerBlobUrl()});
+}
+function addGifFrame(gif,canvas,delay){
+  const frame=document.createElement('canvas');frame.width=gif.options.width;frame.height=gif.options.height;
+  frame.getContext('2d').drawImage(canvas,0,0,frame.width,frame.height);
+  gif.addFrame(frame,{delay,copy:true});
+}
+function finishGif(gif,filename){
+  return new Promise((resolve,reject)=>{
+    gif.on('finished',blob=>{saveBlob(blob,filename);resolve();});
+    gif.on('abort',()=>reject(new Error('GIF encoding aborted')));
     gif.render();
-  }catch(err){ setStatus('GIF build failed.'); }
+  });
+}
+document.getElementById('expGif').onclick=async()=>{
+  exportMenu.classList.remove('open');setStatus('Rendering motion GIF...');
+  try{
+    const first=await captureCanvas();const gif=makeGif(first.width,first.height);
+    addGifFrame(gif,first,110);
+    for(let i=1;i<14;i++){
+      await new Promise(r=>setTimeout(r,90));
+      addGifFrame(gif,await captureCanvas(),110);
+    }
+    await finishGif(gif,'neonmoon-motion.gif');setStatus('Motion GIF downloaded.');
+  }catch(err){exportError(err);}
+};
+let beforeSnapshot=null;
+document.getElementById('expBA').onclick=async()=>{
+  exportMenu.classList.remove('open');
+  try{
+    if(!beforeSnapshot){beforeSnapshot=await captureCanvas();setStatus('Before saved. Edit your image, then export again.');return;}
+    setStatus('Building Before→After GIF...');
+    const after=await captureCanvas();const gif=makeGif(after.width,after.height);
+    addGifFrame(gif,beforeSnapshot,900);addGifFrame(gif,after,900);
+    await finishGif(gif,'neonmoon-before-after.gif');beforeSnapshot=null;
+    setStatus('Before→After GIF downloaded.');
+  }catch(err){exportError(err);}
 };
 
 // ---- UNDO / REDO ----
@@ -1558,6 +1595,22 @@ pushHistory();
 }catch(err){
   showDebugError('App init error: ' + (err && (err.stack || err.message) || err));
 }
+</script>
+<script>
+// Preview-only zoom. The image export continues to use the unzoomed canvas.
+(function(){
+ const stageEl=document.getElementById('stage');
+ const zoomLabel=document.getElementById('viewZoomLabel');
+ let zoom=1;
+ function setZoom(v){zoom=Math.max(.5,Math.min(2.5,v));stageEl.style.setProperty('--view-zoom',zoom);zoomLabel.textContent=Math.round(zoom*100)+'%';}
+ document.getElementById('viewMinus').addEventListener('click',()=>setZoom(zoom-.15));
+ document.getElementById('viewPlus').addEventListener('click',()=>setZoom(zoom+.15));
+ document.getElementById('viewFit').addEventListener('click',()=>setZoom(1));
+ let distance=0,initial=1;
+ stageEl.addEventListener('touchstart',e=>{if(e.touches.length===2){distance=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);initial=zoom;}},{passive:true});
+ stageEl.addEventListener('touchmove',e=>{if(e.touches.length===2&&distance){const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);setZoom(initial*d/distance);}},{passive:true});
+ stageEl.addEventListener('touchend',e=>{if(e.touches.length<2)distance=0;},{passive:true});
+})();
 </script>
 </body>
 </html>
