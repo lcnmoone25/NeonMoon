@@ -818,6 +818,7 @@ function buildPresets(rowId, onPick){
     row.appendChild(d);
   });
 }
+let placedDots = []; // Initialize before palette callbacks can repaint dots.
 buildPresets('presetRow1', p=>{ document.getElementById('dotColor').value=p.a;paletteState.dot.a=p.a; repaintDots(); });
 buildPresets('presetRow2', p=>{ document.getElementById('neonFill').value=p.a; document.getElementById('neonStroke').value=p.b; });
 mountPalette('dot','dotPaletteMount',()=>{if(typeof repaintDots==='function')repaintDots();});
@@ -933,7 +934,6 @@ function shapeSVG(shape, color, size, outline){
 }
 
 // ---- TAB1: DOT LAYER — reading-order scatter + manual draw ----
-let placedDots = [];
 let dotCountUserOverride = false;
 
 function currentDotSettings(){
