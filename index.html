@@ -476,7 +476,7 @@ input[type=file]{position:absolute;width:1px;height:1px;padding:0;margin:-1px;ov
 .shape-fill-row #addReplace{flex:none;padding:7px 9px}
 .compact-range-number{width:39px!important;min-width:39px!important;max-width:39px!important;flex:none!important;box-sizing:border-box!important;text-align:center!important;font-size:12px!important;padding:4px 2px!important;min-height:29px!important;border:1px solid #e8dbe8!important;border-radius:9px!important;background:#fff!important;color:#403748!important;appearance:textfield;-moz-appearance:textfield}
 .compact-range-number::-webkit-inner-spin-button,.compact-range-number::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
-</style></head>
+</style><style>.palette-mini{padding:5px 0 8px}.palette-line{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.palette-line select{max-width:125px;min-width:90px;font-size:12px;padding:7px;border-radius:12px}.palette-line input[type=color]{width:33px;height:33px;padding:2px;border:1px solid #ead9e7;border-radius:11px}.palette-swatches{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}.palette-swatch-wrap{position:relative;display:inline-flex}.palette-swatch{width:27px;height:27px;border-radius:9px;border:1px solid #ddd;cursor:pointer}.palette-delete{position:absolute;right:-4px;top:-7px;border:0;background:white;border-radius:50%;font-size:12px}.palette-custom{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:7px}.palette-custom input{width:34px;height:30px}.palette-add{border:1px solid #d8b6cc;border-radius:12px;padding:6px 9px;background:#ffe3f0;font-size:12px}.palette-hint{font-size:10px;opacity:.6}</style></head>
 <body>
 <div class="bg-fade"></div>
 <div class="app">
@@ -551,7 +551,7 @@ input[type=file]{position:absolute;width:1px;height:1px;padding:0;margin:-1px;ov
     <div class="subpanel active" id="s1a">
       <div class="row dot-actions"><button type="button" class="draw-toggle-inline" id="drawToggle">✎ Draw mode: Off</button><button class="ghost" id="shuffleBtn">🔀 Re-scatter</button><button class="ghost" id="clearDotsBtn">🗑 Clear all</button></div>
       <div class="section-title">Color preset</div>
-      <div class="preset-row" id="presetRow1"></div>
+      <div class="preset-row" id="presetRow1"></div><div id="dotPaletteMount"></div>
       <div class="row"><input type="text" id="dotText" placeholder="Type text..."></div>
       <div class="row">
         <label class="small">Font</label>
@@ -602,7 +602,7 @@ input[type=file]{position:absolute;width:1px;height:1px;padding:0;margin:-1px;ov
         <button class="chip polka-shape-chip" data-v="drop">💧</button>
       </div>
       <div class="row polka-colors"><label class="small">Color</label><input type="color" id="polkaColor" value="#22d9ff"><select id="polkaColorMode" aria-label="Polka color mode"><option value="solid">Solid</option><option value="gradient">Gradient</option><option value="pantone">Pantone</option></select><select id="polkaGradientMode" aria-label="Gradient application"><option value="each">Each</option><option value="all">All</option></select></div>
-      <div class="row polka-palette" id="polkaPalette"><input type="color" id="polkaColor2" value="#ffffff" aria-label="Gradient second color"><div id="polkaPantoneColors" class="polka-swatches"></div></div>
+      <div id="polkaPaletteMount"></div><div class="row polka-palette" id="polkaPalette"><input type="color" id="polkaColor2" value="#ffffff" aria-label="Gradient second color"><div id="polkaPantoneColors" class="polka-swatches"></div></div>
       <div class="row"><label class="small">Size</label><input type="range" id="polkaSize" min="3" max="30" value="8"><span class="range-val" id="polkaSizeVal">8</span></div>
       <div class="row"><label class="small">Spacing</label><input type="range" id="polkaSpace" min="14" max="60" value="26"><span class="range-val" id="polkaSpaceVal">26</span></div>
       <div class="row"><label class="small">Opacity</label><input type="range" id="polkaOpacity" min="10" max="100" value="60"><span class="range-val" id="polkaOpacityVal">60</span></div>
@@ -619,8 +619,8 @@ input[type=file]{position:absolute;width:1px;height:1px;padding:0;margin:-1px;ov
         <button class="chip" data-v="drop">Drop & roll</button>
         <button class="chip" data-v="rain">Rain</button>
       </div>
-      <div class="row"><label class="small">Loop count</label><input type="range" id="motionLoop" min="1" max="10" value="10"><span class="range-val" id="motionLoopVal">10</span></div>
-      <button class="ghost" id="playMotionBtn">▶ Play</button>
+      <div class="row"><label class="small">Loop count</label><input type="range" id="motionLoop" min="1" max="10" value="1"><span class="range-val" id="motionLoopVal">1</span></div>
+      <div class="row"><label class="small">Speed</label><input type="range" id="motionSpeed" min="25" max="300" value="100" step="5"><span class="range-val" id="motionSpeedVal">100%</span></div><div id="motionProcessing" role="status" style="display:none;font-size:12px;color:#ad4e84;padding:6px">૮꒰ ˶• ༝ •˶꒱ა Processing, please wait &lt;3</div><button class="ghost" id="playMotionBtn">▶ Play</button>
       <div class="hint">How many times the motion repeats (1–10 loops), then it stays still on the last frame. Tap Play to replay it anytime.</div>
     </div>
   </div>
@@ -793,6 +793,14 @@ function chipGroup(sel, onChange){
   });
 }
 
+const PALETTE_TONES={Vivid:['#ff3fd0','#ff3434','#ff8a00','#fff000','#37d749','#00c5ff','#7055ff','#111111'],Pastel:['#ffc5df','#ffe2bd','#fff3a8','#c8efbb','#b9e9f7','#d8cbff','#f1c8e9','#f6f0e8'],Muted:['#bd829d','#c59b88','#c6b77d','#8da78c','#8aa8b3','#9893b5','#b0a3a1','#676c75']};
+const paletteState={dot:{mode:'solid',tone:'Vivid',a:'#ff3fd0',b:'#ffe3f7'},polka:{mode:'solid',tone:'Pastel',a:'#22d9ff',b:'#ffffff'}};
+let userPalette=[];try{userPalette=JSON.parse(localStorage.getItem('neonmoon-user-palette')||'[]');}catch(e){}
+function getPaletteColors(which){const st=paletteState[which];return st.tone==='My colors'?userPalette:PALETTE_TONES[st.tone]||PALETTE_TONES.Vivid;}
+function getPaint(which,fallback){const st=paletteState[which];if(st.mode==='pantone'){const colors=getPaletteColors(which);return colors.length?colors[Math.floor(Math.random()*colors.length)]:fallback;}return st.a||fallback;}
+function mountPalette(which,mountId,refresh){const host=document.getElementById(mountId);host.innerHTML=`<div class="palette-mini"><div class="palette-line"><select class="palette-mode"><option value="solid">Solid</option><option value="gradient">Gradient</option><option value="pantone">Pantone</option></select><select class="palette-tone"><option>Vivid</option><option>Pastel</option><option>Muted</option><option>My colors</option></select><input class="palette-a" type="color"><input class="palette-b" type="color" title="Gradient end"></div><div class="palette-swatches"></div><div class="palette-custom"><input class="palette-new" type="color" value="#ffb5da"><button type="button" class="palette-add">+ Save color</button><span class="palette-hint">Tap a saved color to use it · × to delete</span></div></div>`;const st=paletteState[which],mode=host.querySelector('.palette-mode'),tone=host.querySelector('.palette-tone'),a=host.querySelector('.palette-a'),b=host.querySelector('.palette-b');mode.value=st.mode;tone.value=st.tone;a.value=st.a;b.value=st.b;
+function redraw(){st.mode=mode.value;st.tone=tone.value;st.a=a.value;st.b=b.value;b.style.display=st.mode==='gradient'?'':'none';const custom=host.querySelector('.palette-custom');custom.style.display=st.tone==='My colors'?'flex':'none';const sw=host.querySelector('.palette-swatches');sw.innerHTML='';getPaletteColors(which).forEach(c=>{const wrap=document.createElement('span');wrap.className='palette-swatch-wrap';const btn=document.createElement('button');btn.type='button';btn.className='palette-swatch';btn.style.background=c;btn.title=c;btn.onclick=()=>{a.value=c;st.a=c;if(st.mode==='solid')refresh();else {mode.value='solid';redraw();}};wrap.append(btn);if(st.tone==='My colors'){const del=document.createElement('button');del.className='palette-delete';del.textContent='×';del.title='Remove color';del.onclick=()=>{userPalette=userPalette.filter(x=>x!==c);localStorage.setItem('neonmoon-user-palette',JSON.stringify(userPalette));redraw();refresh();};wrap.append(del);}sw.append(wrap);});refresh();}
+[mode,tone,a,b].forEach(x=>x.addEventListener('input',redraw));host.querySelector('.palette-add').onclick=()=>{const c=host.querySelector('.palette-new').value;if(!userPalette.includes(c))userPalette.push(c);localStorage.setItem('neonmoon-user-palette',JSON.stringify(userPalette));tone.value='My colors';redraw();};redraw();return redraw;}
 const presets = [
   {a:'#ff3fd0',b:'#ffe3f7'},
   {a:'#fff700',b:'#fffbd6'},
@@ -810,8 +818,10 @@ function buildPresets(rowId, onPick){
     row.appendChild(d);
   });
 }
-buildPresets('presetRow1', p=>{ document.getElementById('dotColor').value=p.a; repaintDots(); });
+buildPresets('presetRow1', p=>{ document.getElementById('dotColor').value=p.a;paletteState.dot.a=p.a; repaintDots(); });
 buildPresets('presetRow2', p=>{ document.getElementById('neonFill').value=p.a; document.getElementById('neonStroke').value=p.b; });
+mountPalette('dot','dotPaletteMount',()=>{if(typeof repaintDots==='function')repaintDots();});
+mountPalette('polka','polkaPaletteMount',()=>{if(typeof renderPolka==='function')renderPolka();});
 
 const exportFab = document.getElementById('exportFab');
 const exportMenu = document.getElementById('exportMenu');
@@ -931,7 +941,7 @@ function currentDotSettings(){
   const textSizeEl = document.getElementById('dotTextSize');
   return {
     size: parseInt(document.getElementById('dotSize').value),
-    dotColor: document.getElementById('dotColor').value,
+    dotColor: getPaint('dot',document.getElementById('dotColor').value),
     textColor: document.getElementById('dotTextColor').value,
     shape: document.querySelector('#dotShapeRow .chip.active').dataset.v,
     motion: document.querySelector('#dotMotionRow .chip.active').dataset.v,
@@ -945,13 +955,15 @@ function applyMotionClass(el, motion){
   el.style.animationDelay='';
   el.style.animationIterationCount='';
   el.style.animationDuration='';
+  const speed = Math.max(.25, Number(document.getElementById('motionSpeed')?.value||100)/100);
+  el.style.setProperty('--motion-speed',String(speed));
   const loopEl = document.getElementById('motionLoop');
   const loopVal = loopEl ? parseInt(loopEl.value) : NaN;
-  const loop = (Number.isFinite(loopVal) && loopVal > 0) ? loopVal : 10;
-  if(motion==='pop'){ el.classList.add('m-pop'); el.style.animationDelay=(Math.random()*0.6)+'s'; el.style.animationIterationCount=loop; }
-  if(motion==='blink'){ el.classList.add('m-blink'); el.style.animationDelay=(Math.random()*1.5)+'s'; el.style.animationIterationCount=loop; }
-  if(motion==='float'){ el.classList.add('m-float'); el.style.animationDelay=(Math.random()*1.5)+'s'; el.style.animationIterationCount=loop; }
-  if(motion==='shake'){ el.classList.add('m-shake'); el.style.animationDelay='0s'; el.style.animationIterationCount=loop; }
+  const loop = (Number.isFinite(loopVal) && loopVal > 0) ? loopVal : 1;
+  if(motion==='pop'){ el.classList.add('m-pop'); el.style.animationDelay=(Math.random()*0.6)+'s'; el.style.animationIterationCount=loop; el.style.animationDuration=(1/speed)+'s'; }
+  if(motion==='blink'){ el.classList.add('m-blink'); el.style.animationDelay=(Math.random()*1.5)+'s'; el.style.animationIterationCount=loop; el.style.animationDuration=(1/speed)+'s'; }
+  if(motion==='float'){ el.classList.add('m-float'); el.style.animationDelay=(Math.random()*1.5)+'s'; el.style.animationIterationCount=loop; el.style.animationDuration=(1/speed)+'s'; }
+  if(motion==='shake'){ el.classList.add('m-shake'); el.style.animationDelay='0s'; el.style.animationIterationCount=loop; el.style.animationDuration=(1/speed)+'s'; }
   if(motion==='drop'){
     const sw = stage.clientWidth || 320, sh = stage.clientHeight || 320;
     const finalLeftPct = parseFloat(el.style.left)||50, finalTopPct = parseFloat(el.style.top)||50;
@@ -964,10 +976,10 @@ function applyMotionClass(el, motion){
     el.style.setProperty('--sway', (swayDir*(18+Math.random()*22))+'px');
     el.classList.add('m-drop');
     el.style.animationDelay=(Math.random()*0.3)+'s';
-    el.style.animationDuration=(0.95+Math.random()*0.35)+'s';
+    el.style.animationDuration=((0.95+Math.random()*0.35)/speed)+'s';
     el.style.animationIterationCount=1;
   }
-  if(motion==='rain'){ el.classList.add('m-rain'); el.style.animationDelay=(Math.random()*1.6)+'s'; el.style.animationIterationCount=loop; }
+  if(motion==='rain'){ el.classList.add('m-rain'); el.style.animationDelay=(Math.random()*1.6)+'s'; el.style.animationIterationCount=loop; el.style.animationDuration=(1/speed)+'s'; }
 }
 
 function replayMotion(){
@@ -987,6 +999,7 @@ function drawSingleDot(el, leftPct, topPct, char){
   el.style.transform='translate(-50%,-50%)';
   el.style.display='flex'; el.style.alignItems='center'; el.style.justifyContent='center';
   el.innerHTML = shapeSVG(s.shape, s.dotColor, s.size, s.shape==='ring');
+  if(paletteState.dot.mode==='gradient'){const svg=el.querySelector('svg');if(svg){const ns='http://www.w3.org/2000/svg', id='dg'+Math.random().toString(36).slice(2);const defs=document.createElementNS(ns,'defs'),g=document.createElementNS(ns,'linearGradient');g.id=id;g.innerHTML='<stop offset="0%" stop-color="'+paletteState.dot.a+'"/><stop offset="100%" stop-color="'+paletteState.dot.b+'"/>';defs.appendChild(g);svg.prepend(defs);svg.querySelectorAll('[fill]').forEach(x=>{if(x.getAttribute('fill')!=='none')x.setAttribute('fill','url(#'+id+')');});}}
   if(char){
     const t=document.createElement('div');
     t.textContent=char;
@@ -1053,6 +1066,7 @@ document.getElementById('clearDotsBtn').onclick = clearDots;
   document.getElementById(id).addEventListener('input', ()=>{
     const valEl = document.getElementById(id+'Val');
     if(valEl) valEl.textContent = document.getElementById(id).value;
+    if(id==='dotColor')paletteState.dot.a=document.getElementById(id).value;
     repaintDots();
   });
 });
@@ -1070,8 +1084,9 @@ document.getElementById('dotText').addEventListener('input', ()=>{
 });
 document.getElementById('dotCount').addEventListener('input', ()=>{ dotCountUserOverride = true; scatterDots(); });
 chipGroup('#dotShapeRow', repaintDots);
-chipGroup('#dotMotionRow', applyMotionToExisting);
+chipGroup('#dotMotionRow', ()=>{const status=document.getElementById('motionProcessing');status.style.display='block';requestAnimationFrame(()=>{applyMotionToExisting();requestAnimationFrame(()=>{status.style.display='none';});});});
 document.getElementById('motionLoop').addEventListener('input', applyMotionToExisting);
+document.getElementById('motionSpeed').addEventListener('input',()=>{document.getElementById('motionSpeedVal').textContent=document.getElementById('motionSpeed').value+'%';applyMotionToExisting();});
 document.getElementById('playMotionBtn').addEventListener('click', replayMotion);
 document.querySelectorAll('.polka-toggle-chip').forEach(c=>{
   c.onclick=()=>{
@@ -1115,6 +1130,7 @@ const polkaSwatches=document.getElementById('polkaPantoneColors');
 polkaPantones.forEach((color,i)=>{const btn=document.createElement('button');btn.type='button';btn.className='polka-swatch';btn.style.background=color;btn.title=color;btn.onclick=()=>{btn.classList.toggle('selected');if(!polkaSwatches.querySelector('.selected'))btn.classList.add('selected');renderPolka();};if(i<5)btn.classList.add('selected');polkaSwatches.appendChild(btn);});
 function updatePolkaColorUI(){const mode=document.getElementById('polkaColorMode').value;document.getElementById('polkaGradientMode').style.display=mode==='gradient'?'':'none';document.getElementById('polkaColor2').style.display=mode==='gradient'?'':'none';polkaSwatches.style.display=mode==='pantone'?'flex':'none';document.getElementById('polkaColor').style.display=mode==='pantone'?'none':'';}
 function renderPolka(){
+  const ps=paletteState.polka;if(ps.mode==='pantone'){document.getElementById('polkaColorMode').value='pantone';}else if(ps.mode==='gradient'){document.getElementById('polkaColorMode').value='gradient';document.getElementById('polkaColor').value=ps.a;document.getElementById('polkaColor2').value=ps.b;}else{document.getElementById('polkaColorMode').value='solid';document.getElementById('polkaColor').value=ps.a;}
   polkaLayer.innerHTML='';
   const toggleActive=document.querySelector('.polka-toggle-chip.active');
   if((toggleActive?.dataset.v||'off')!=='on')return;
@@ -1123,7 +1139,7 @@ function renderPolka(){
   const color2=document.getElementById('polkaColor2').value;
   const mode=document.getElementById('polkaColorMode').value;
   const gradMode=document.getElementById('polkaGradientMode').value;
-  const colors=[...polkaSwatches.querySelectorAll('.selected')].map(e=>e.style.backgroundColor);
+  const colors=mode==='pantone' ? getPaletteColors('polka') : [...polkaSwatches.querySelectorAll('.selected')].map(e=>e.style.backgroundColor);
   const size=+document.getElementById('polkaSize').value;
   const spacing=+document.getElementById('polkaSpace').value;
   const opacity=+document.getElementById('polkaOpacity').value/100;
