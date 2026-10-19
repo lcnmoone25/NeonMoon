@@ -355,6 +355,22 @@ input[type=file]{position:absolute;width:1px;height:1px;padding:0;margin:-1px;ov
  .export-menu{position:fixed;top:52px;right:10px;z-index:1000}
  input,select,textarea{font-size:16px!important}
 }
+/* Mobile viewport repair: controls centered, navigation always reachable */
+@media(max-width:700px){
+ html,body{margin:0;width:100%;height:100%;height:100dvh;overflow:hidden}
+ .app{height:100dvh!important;min-height:0!important;padding-bottom:0!important;display:flex!important;flex-direction:column!important;overflow:hidden!important}
+ .appbar{order:0;flex:0 0 auto}
+ .stage-wrap{order:1!important;flex:1 1 0!important;min-height:110px!important;overflow:hidden!important;position:relative!important;display:flex!important;flex-direction:column!important;justify-content:center!important;align-items:center!important;padding:12px 8px 86px!important;box-sizing:border-box!important}
+ .stage{max-width:min(92vw, 42dvh)!important;max-height:calc(100% - 18px)!important;margin:auto!important}
+ .mobile-view-controls{position:absolute!important;bottom:44px!important;left:50%!important;transform:translateX(-50%)!important;display:flex!important;align-items:center!important;justify-content:center!important;width:max-content!important;max-width:96%!important;margin:0!important;gap:7px!important}
+ .mobile-view-controls button{min-width:43px;min-height:38px}
+ .undo-redo-row{position:absolute!important;bottom:5px!important;left:50%!important;transform:translateX(-50%)!important;margin:0!important;display:flex!important;gap:10px!important}
+ .panel{order:2!important;flex:0 1 34dvh!important;min-height:110px!important;overflow-y:auto!important;padding-bottom:14px!important}
+ .maintabs{order:3!important;flex:0 0 auto!important;position:relative!important;bottom:auto!important;left:auto!important;right:auto!important;width:100%!important;box-sizing:border-box!important;padding:8px 10px max(12px, env(safe-area-inset-bottom))!important;z-index:100!important;display:flex!important;visibility:visible!important;transform:none!important}
+ .maintab-btn{display:block!important;visibility:visible!important;flex:1 1 0!important;min-height:46px!important;font-size:clamp(11px,3.1vw,14px)!important}
+}
+/* Mobile: picker is launched directly; legacy menu stays available only for desktop if needed */
+@media(max-width:700px){.bg-menu{top:auto!important;bottom:calc(100% + 6px)!important;left:8px!important;z-index:1001!important}}
 </style>
 </head>
 <body>
@@ -714,9 +730,9 @@ const bgMenu = document.getElementById('bgMenu');
 const drawToggle = document.getElementById('drawToggle');
 
 function hasBackground(){ return !!(bgLayer.style.backgroundImage || bgLayer.style.backgroundColor); }
-function openFilePicker(){ bgFileInput.click(); }
+function openFilePicker(){ bgFileInput.value = ''; bgFileInput.click(); }
 
-bgMenuBtn.addEventListener('click', (e)=>{ e.stopPropagation(); bgMenu.classList.toggle('open'); });
+bgMenuBtn.addEventListener('click', (e)=>{ e.stopPropagation(); openFilePicker(); });
 document.addEventListener('click', (e)=>{
   if(!bgMenu.contains(e.target) && e.target!==bgMenuBtn) bgMenu.classList.remove('open');
 });
