@@ -457,7 +457,24 @@ input[type=file]{position:absolute;width:1px;height:1px;padding:0;margin:-1px;ov
  #t2 .chip{padding:6px 9px!important;min-height:30px!important}
 }
 </style>
-</head>
+<style>
+.neon-preset-tools{display:flex;align-items:center;gap:7px;min-width:0}
+.neon-preset-tools .preset-row{display:flex;flex:1;min-width:0;overflow-x:auto;white-space:nowrap}
+.neon-quick{display:flex;align-items:center;gap:4px;flex:none}
+.neon-quick .chip{padding:5px 8px;min-height:30px}
+.neon-quick input[type=color]{width:30px;height:30px;min-width:30px;padding:1px}
+.letter-shape-pair{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
+.letter-shape-pair #charInput,.letter-shape-pair #shapeSelect{width:100%!important;max-width:none!important;min-width:0!important;box-sizing:border-box}
+.shape-fill-row{display:flex!important;gap:7px;align-items:center}
+.shape-fill-row #fillSelect{width:75px!important;max-width:75px!important;flex:none!important;min-width:0!important;padding-left:5px;padding-right:3px}
+.shape-size-inline{display:flex;align-items:center;gap:5px;flex:1;min-width:0}
+.shape-size-inline label{flex:none}
+.shape-size-inline input[type=range]{flex:1;min-width:20px;width:100%}
+.shape-fill-row #shapeColor{flex:none}
+.shape-fill-row #addReplace{flex:none;padding:7px 9px}
+.compact-range-number{width:39px!important;min-width:39px!important;max-width:39px!important;flex:none!important;box-sizing:border-box!important;text-align:center!important;font-size:12px!important;padding:4px 2px!important;min-height:29px!important;border:1px solid #e8dbe8!important;border-radius:9px!important;background:#fff!important;color:#403748!important;appearance:textfield;-moz-appearance:textfield}
+.compact-range-number::-webkit-inner-spin-button,.compact-range-number::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+</style></head>
 <body>
 <div class="bg-fade"></div>
 <div class="app">
@@ -537,10 +554,10 @@ input[type=file]{position:absolute;width:1px;height:1px;padding:0;margin:-1px;ov
       <div class="row">
         <label class="small">Font</label>
         <select id="dotFont">
-          <option value="auto" selected>Cute</option>
-          <option value="-apple-system,Arial,sans-serif">Sans</option>
+          <option value="auto">Cute</option>
           <option value="Georgia,serif">Serif</option>
-          <option value="'Arial Narrow','Liberation Sans Narrow',Arial,sans-serif">Arial Narrow</option>
+          <option value="'Arial Narrow','Liberation Sans Narrow',Arial,sans-serif" selected>Arial Narrow</option>
+          <option value="'Helvetica Neue Condensed','Helvetica Neue','Arial Narrow',Arial,sans-serif">Helvetica Narrow</option>
           <option value="'Pinyon Script',cursive">Pinyon Script</option>
           <option value="'Courier New',monospace">Mono</option>
           <option value="'Brush Script MT',cursive">Cursive</option>
@@ -551,7 +568,7 @@ input[type=file]{position:absolute;width:1px;height:1px;padding:0;margin:-1px;ov
         <label class="small">Text color</label><input type="color" id="dotTextColor" value="#ffffff">
       </div>
       <div class="row"><label class="small">Dot count</label><input type="range" id="dotCount" min="1" max="60" value="1"><span class="range-val" id="dotCountVal">1</span></div>
-      <div class="row"><label class="small">Dot size</label><input type="range" id="dotSize" min="14" max="60" value="34"><span class="range-val" id="dotSizeVal">34</span></div>
+      <div class="row"><label class="small">Dot size</label><input type="range" id="dotSize" min="14" max="60" value="20"><span class="range-val" id="dotSizeVal">20</span></div>
       <div class="row"><label class="small">Text size</label><input type="range" id="dotTextSize" min="20" max="100" value="42"><span class="range-val" id="dotTextSizeVal">42</span></div>
       <div class="btn-row">
         <button class="ghost" id="shuffleBtn">🔀 Re-scatter</button>
@@ -617,24 +634,19 @@ input[type=file]{position:absolute;width:1px;height:1px;padding:0;margin:-1px;ov
 
     <div class="subpanel active" id="s2a">
       <div class="section-title">Neon preset</div>
-      <div class="preset-row" id="presetRow2"></div>
+      <div class="neon-preset-tools"><div class="preset-row" id="presetRow2"></div><div class="neon-quick"><button class="chip" id="neonBoldToggle" data-v="off"><b>B</b></button><button class="chip" id="neonItalicToggle" data-v="off"><i>I</i></button><input type="color" id="neonFill" value="#ff3fd0" title="Fill"><input type="color" id="neonStroke" value="#22d9ff" title="Outline"></div></div>
       <div class="row"><input type="text" id="neonTextInput" placeholder="Type text..."></div>
       <div class="row">
         <select id="neonFont">
-          <option value="-apple-system,Arial,sans-serif">Sans</option>
           <option value="Georgia,serif">Serif</option>
-          <option value="'Arial Narrow','Liberation Sans Narrow',Arial,sans-serif">Arial Narrow</option>
+          <option value="'Arial Narrow','Liberation Sans Narrow',Arial,sans-serif" selected>Arial Narrow</option>
+          <option value="'Helvetica Neue Condensed','Helvetica Neue','Arial Narrow',Arial,sans-serif">Helvetica Narrow</option>
           <option value="'Pinyon Script',cursive">Pinyon Script</option>
           <option value="'Courier New',monospace">Mono</option>
           <option value="'Brush Script MT',cursive">Cursive</option>
         </select>
       </div>
-      <div class="row">
-        <button class="chip" id="neonBoldToggle" data-v="off"><b>B</b></button>
-        <button class="chip" id="neonItalicToggle" data-v="off"><i>I</i></button>
-        <input type="color" id="neonFill" value="#ff3fd0" title="Fill">
-        <input type="color" id="neonStroke" value="#22d9ff" title="Outline">
-      </div>
+
       <div class="row"><label class="small">Outline width</label><input type="range" id="neonStrokeW" min="0" max="6" value="0"><span class="range-val" id="neonStrokeWVal">0</span></div>
       <div class="row"><label class="small">Size</label><input type="range" id="neonSize" min="18" max="72" value="34"><span class="range-val" id="neonSizeVal">34</span></div>
       <div class="row">
@@ -654,8 +666,8 @@ input[type=file]{position:absolute;width:1px;height:1px;padding:0;margin:-1px;ov
 
     <div class="subpanel" id="s2b">
       <div class="section-title">Replace a letter with a shape (applies instantly)</div>
-      <div class="row">
-        <input type="text" id="charInput" maxlength="2" placeholder="letter" style="max-width:52px;">
+      <div class="row letter-shape-pair">
+        <input type="text" id="charInput" maxlength="2" placeholder="letter">
         <select id="shapeSelect">
           <option value="star">★ Star</option>
           <option value="heart">♥ Heart</option>
@@ -666,15 +678,16 @@ input[type=file]{position:absolute;width:1px;height:1px;padding:0;margin:-1px;ov
           <option value="drop">💧 Drop</option>
         </select>
       </div>
-      <div class="row">
+      <div class="row shape-fill-row">
         <select id="fillSelect">
           <option value="fill">Fill</option>
           <option value="outline">Outline</option>
         </select>
+        <div class="shape-size-inline"><label class="small">Size</label><input type="range" id="shapeSize" min="14" max="60" value="26"><span class="range-val" id="shapeSizeVal">26</span></div>
         <input type="color" id="shapeColor" value="#fff700">
         <button class="ghost" id="addReplace">＋ Add</button>
       </div>
-      <div class="row"><label class="small">Shape size</label><input type="range" id="shapeSize" min="14" max="60" value="26"><span class="range-val" id="shapeSizeVal">26</span></div>
+
       <div class="replace-list" id="replaceList"></div>
       <div class="hint">Unlimited rules — add/remove instantly updates every added text.</div>
     </div>
@@ -692,9 +705,9 @@ input[type=file]{position:absolute;width:1px;height:1px;padding:0;margin:-1px;ov
       <div class="row">
         <label class="small">Font</label>
         <select id="itFont">
-          <option value="-apple-system,Arial,sans-serif" selected>Sans</option>
           <option value="Georgia,serif">Serif</option>
-          <option value="'Arial Narrow','Liberation Sans Narrow',Arial,sans-serif">Arial Narrow</option>
+          <option value="'Arial Narrow','Liberation Sans Narrow',Arial,sans-serif" selected>Arial Narrow</option>
+          <option value="'Helvetica Neue Condensed','Helvetica Neue','Arial Narrow',Arial,sans-serif">Helvetica Narrow</option>
           <option value="'Pinyon Script',cursive">Pinyon Script</option>
           <option value="'Courier New',monospace">Mono</option>
           <option value="'Brush Script MT',cursive">Cursive</option>
@@ -979,7 +992,7 @@ function drawSingleDot(el, leftPct, topPct, char){
     const t=document.createElement('div');
     t.textContent=char;
     t.style.position='absolute';t.style.color=s.textColor;t.style.fontSize=(s.size*(s.textSizePct/100))+'px';
-    t.style.fontWeight='700';
+    t.style.fontWeight='400';
     if(s.font && s.font!=='auto'){ t.style.fontFamily = s.font; }
     el.appendChild(t);
   }
@@ -1019,12 +1032,14 @@ function scatterDots(){
   placedDots = [];
   const n = Math.max(count, chars.length);
   const bandCenter = 35 + Math.random()*30;
-  const slot = 92/Math.max(n,1);
+  const slot = 100/Math.max(n,1);
   for(let i=0;i<n;i++){
-    const baseLeft = 4 + slot*(i+0.5);
+    const baseLeft = slot*(i+0.5);
     const jitter = (Math.random()-0.5) * slot * 0.7; // keep jitter smaller than slot so order is preserved
-    const leftPct = Math.min(97, Math.max(3, baseLeft + jitter));
-    const topPct = Math.min(94, Math.max(6, bandCenter + (Math.random()-0.5)*60));
+    const dotRadiusPct = (parseFloat(document.getElementById("dotSize").value)/2 + 5) / Math.max(1,dotLayer.clientWidth) * 100;
+    const leftPct = Math.min(100-dotRadiusPct, Math.max(dotRadiusPct, baseLeft + jitter));
+    const dotRadiusYPct = (parseFloat(document.getElementById("dotSize").value)/2 + 5) / Math.max(1,dotLayer.clientHeight) * 100;
+    const topPct = Math.min(100-dotRadiusYPct, Math.max(dotRadiusYPct, bandCenter + (Math.random()-0.5)*60));
     placedDots.push({leftPct, topPct, char: chars[i] || null});
   }
   repaintDots();
@@ -1244,7 +1259,7 @@ function renderCharOrText(ch, nt){
     -${sw}px ${sw}px 0 ${nt.stroke}, ${sw}px ${sw}px 0 ${nt.stroke},
     -${sw}px 0 0 ${nt.stroke}, ${sw}px 0 0 ${nt.stroke},
     0 -${sw}px 0 ${nt.stroke}, 0 ${sw}px 0 ${nt.stroke}` : 'none';
-  span.style.fontWeight= nt.bold ? '900' : '700';
+  span.style.fontWeight= nt.bold ? '700' : '400';
   span.style.fontStyle = nt.italic ? 'italic' : 'normal';
   span.style.fontSize = nt.size+'px';
   span.style.fontFamily = nt.font;
@@ -1764,5 +1779,37 @@ pushHistory();
  document.getElementById('bgMenuBtn')?.addEventListener('click',()=>document.body.classList.remove('mobile-tools-open'));
 })();
 </script>
-</body>
+<script>
+(function(){
+  function setupEditableRange(range){
+    if(range.dataset.numberReady) return;
+    const id=range.id;
+    const valueLabel=document.getElementById(id+'Val');
+    if(!valueLabel) return;
+    range.dataset.numberReady='1';
+    const number=document.createElement('input');
+    number.type='number'; number.className='compact-range-number';
+    number.setAttribute('aria-label', (range.closest('.row')?.querySelector('label')?.textContent || id)+' value');
+    number.min=range.min; number.max=range.max; number.step=range.step && range.step!=='any'?range.step:'1';
+    number.value=range.value;
+    valueLabel.style.display='none';
+    valueLabel.after(number);
+    range.addEventListener('input',()=>{number.value=range.value;});
+    const apply=()=>{
+      if(number.value==='') return;
+      const min=Number(range.min||0),max=Number(range.max||100);
+      const val=Math.max(min,Math.min(max,Number(number.value)));
+      if(!Number.isFinite(val)) return;
+      range.value=val;number.value=range.value;
+      range.dispatchEvent(new Event('input',{bubbles:true}));
+      range.dispatchEvent(new Event('change',{bubbles:true}));
+    };
+    number.addEventListener('change',apply);
+    number.addEventListener('keydown',e=>{if(e.key==='Enter'){apply();number.blur();}});
+  }
+  document.querySelectorAll('input[type="range"]').forEach(setupEditableRange);
+  new MutationObserver(()=>document.querySelectorAll('input[type="range"]').forEach(setupEditableRange))
+    .observe(document.body,{childList:true,subtree:true});
+})();
+</script></body>
 </html>
