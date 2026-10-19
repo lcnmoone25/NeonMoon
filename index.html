@@ -456,6 +456,8 @@ input[type=file]{position:absolute;width:1px;height:1px;padding:0;margin:-1px;ov
  #t2 .chip-row{gap:5px!important;margin:4px 0!important}
  #t2 .chip{padding:6px 9px!important;min-height:30px!important}
 }
+@media(max-width:700px){.dot-actions{display:flex!important;gap:5px!important;flex-wrap:nowrap!important}.dot-actions button{font-size:10px!important;padding:7px 5px!important;min-width:0!important;flex:1}.polka-colors select{max-width:105px;min-width:0;font-size:12px}.polka-palette{margin-top:0!important}.polka-swatches{flex-wrap:wrap;gap:5px}}
+.polka-swatches{display:flex;gap:5px;align-items:center}.polka-swatch{width:22px;height:22px;border-radius:7px;border:2px solid white;box-shadow:0 0 0 1px #ddd;padding:0}.polka-swatch.selected{box-shadow:0 0 0 2px #ee70bb}.polka-colors select{border-radius:10px;padding:6px;border:1px solid #e6d7e5;background:white}
 </style>
 <style>
 .neon-preset-tools{display:flex;align-items:center;gap:7px;min-width:0}
@@ -547,7 +549,7 @@ input[type=file]{position:absolute;width:1px;height:1px;padding:0;margin:-1px;ov
     </div>
 
     <div class="subpanel active" id="s1a">
-      <div class="row"><button type="button" class="draw-toggle-inline" id="drawToggle" style="display:none;">✎ Draw mode: Off</button></div>
+      <div class="row dot-actions"><button type="button" class="draw-toggle-inline" id="drawToggle">✎ Draw mode: Off</button><button class="ghost" id="shuffleBtn">🔀 Re-scatter</button><button class="ghost" id="clearDotsBtn">🗑 Clear all</button></div>
       <div class="section-title">Color preset</div>
       <div class="preset-row" id="presetRow1"></div>
       <div class="row"><input type="text" id="dotText" placeholder="Type text..."></div>
@@ -570,10 +572,7 @@ input[type=file]{position:absolute;width:1px;height:1px;padding:0;margin:-1px;ov
       <div class="row"><label class="small">Dot count</label><input type="range" id="dotCount" min="1" max="60" value="1"><span class="range-val" id="dotCountVal">1</span></div>
       <div class="row"><label class="small">Dot size</label><input type="range" id="dotSize" min="14" max="60" value="20"><span class="range-val" id="dotSizeVal">20</span></div>
       <div class="row"><label class="small">Text size</label><input type="range" id="dotTextSize" min="20" max="100" value="42"><span class="range-val" id="dotTextSizeVal">42</span></div>
-      <div class="btn-row">
-        <button class="ghost" id="shuffleBtn">🔀 Re-scatter</button>
-        <button class="ghost" id="clearDotsBtn">🗑 Clear all</button>
-      </div>
+
       <div class="hint">Dot count auto-matches your text length (you can drag the slider for extra blank dots). Turn on "✎ Draw mode" on the photo to tap and place dots by hand.</div>
     </div>
 
@@ -602,7 +601,8 @@ input[type=file]{position:absolute;width:1px;height:1px;padding:0;margin:-1px;ov
         <button class="chip polka-shape-chip" data-v="square">■</button>
         <button class="chip polka-shape-chip" data-v="drop">💧</button>
       </div>
-      <div class="row"><label class="small">Color</label><input type="color" id="polkaColor" value="#22d9ff"></div>
+      <div class="row polka-colors"><label class="small">Color</label><input type="color" id="polkaColor" value="#22d9ff"><select id="polkaColorMode" aria-label="Polka color mode"><option value="solid">Solid</option><option value="gradient">Gradient</option><option value="pantone">Pantone</option></select><select id="polkaGradientMode" aria-label="Gradient application"><option value="each">Each</option><option value="all">All</option></select></div>
+      <div class="row polka-palette" id="polkaPalette"><input type="color" id="polkaColor2" value="#ffffff" aria-label="Gradient second color"><div id="polkaPantoneColors" class="polka-swatches"></div></div>
       <div class="row"><label class="small">Size</label><input type="range" id="polkaSize" min="3" max="30" value="8"><span class="range-val" id="polkaSizeVal">8</span></div>
       <div class="row"><label class="small">Spacing</label><input type="range" id="polkaSpace" min="14" max="60" value="26"><span class="range-val" id="polkaSpaceVal">26</span></div>
       <div class="row"><label class="small">Opacity</label><input type="range" id="polkaOpacity" min="10" max="100" value="60"><span class="range-val" id="polkaOpacityVal">60</span></div>
@@ -1085,6 +1085,7 @@ document.querySelectorAll('.polka-shape-chip').forEach(c=>{
   c.onclick=()=>{
     document.querySelectorAll('.polka-shape-chip').forEach(x=>x.classList.remove('active'));
     c.classList.add('active');
+    document.querySelectorAll('.polka-toggle-chip').forEach(x=>x.classList.toggle('active',x.dataset.v==='on'));
     renderPolka();
   };
 });
@@ -1110,654 +1111,60 @@ stage.addEventListener('click', (e)=>{
   pushHistory();
 });
 
+const polkaPantones=['#f7b6cc','#f4db79','#a8d8bf','#a9c6e8','#c5b2df','#f6a983','#84d5dc','#e7a9d2','#d9e3a5','#f4eee8'];
+const polkaSwatches=document.getElementById('polkaPantoneColors');
+polkaPantones.forEach((color,i)=>{const btn=document.createElement('button');btn.type='button';btn.className='polka-swatch';btn.style.background=color;btn.title=color;btn.onclick=()=>{btn.classList.toggle('selected');if(!polkaSwatches.querySelector('.selected'))btn.classList.add('selected');renderPolka();};if(i<5)btn.classList.add('selected');polkaSwatches.appendChild(btn);});
+function updatePolkaColorUI(){const mode=document.getElementById('polkaColorMode').value;document.getElementById('polkaGradientMode').style.display=mode==='gradient'?'':'none';document.getElementById('polkaColor2').style.display=mode==='gradient'?'':'none';polkaSwatches.style.display=mode==='pantone'?'flex':'none';document.getElementById('polkaColor').style.display=mode==='pantone'?'none':'';}
 function renderPolka(){
   polkaLayer.innerHTML='';
-  const toggleActive = document.querySelector('.polka-toggle-chip.active');
-  const state = toggleActive ? toggleActive.dataset.v : 'on';
-  if(state!=='on') return;
-  const shapeActive = document.querySelector('.polka-shape-chip.active');
-  const shape = shapeActive ? shapeActive.dataset.v : 'circle';
-  const color = document.getElementById('polkaColor').value;
-  const size = parseInt(document.getElementById('polkaSize').value);
-  const spacing = parseInt(document.getElementById('polkaSpace').value);
-  const opacity = parseInt(document.getElementById('polkaOpacity').value)/100;
-  polkaLayer.style.opacity = opacity;
-  const stageW = stage.clientWidth || 320;
-  const stageH = stage.clientHeight || stageW;
-  const cols = Math.ceil(stageW/spacing)+2;
-  const rows = Math.ceil(stageH/spacing)+2;
-  for(let r=0;r<rows;r++){
-    for(let c=0;c<cols;c++){
-      const d=document.createElement('div');
-      d.style.position='absolute';
-      d.style.left=(5 + c*spacing + (r%2)*spacing/2)+'px'; d.style.top=(5 + r*spacing)+'px';
-      if(5+c*spacing+(r%2)*spacing/2+size>stageW-5 || 5+r*spacing+size>stageH-5) continue;
-      d.style.width=size+'px'; d.style.height=size+'px';
-      d.innerHTML=shapeSVG(shape,color,size,false);
+  const toggleActive=document.querySelector('.polka-toggle-chip.active');
+  if((toggleActive?.dataset.v||'off')!=='on')return;
+  const shape=document.querySelector('.polka-shape-chip.active')?.dataset.v||'circle';
+  const color=document.getElementById('polkaColor').value;
+  const color2=document.getElementById('polkaColor2').value;
+  const mode=document.getElementById('polkaColorMode').value;
+  const gradMode=document.getElementById('polkaGradientMode').value;
+  const colors=[...polkaSwatches.querySelectorAll('.selected')].map(e=>e.style.backgroundColor);
+  const size=+document.getElementById('polkaSize').value;
+  const spacing=+document.getElementById('polkaSpace').value;
+  const opacity=+document.getElementById('polkaOpacity').value/100;
+  polkaLayer.style.opacity=opacity;
+  const w=stage.clientWidth||320,h=stage.clientHeight||w;
+  const margin=5, usableW=Math.max(0,w-2*margin-size),usableH=Math.max(0,h-2*margin-size);
+  const defs=document.createElementNS('http://www.w3.org/2000/svg','svg');
+  // SVG masks retain the selected shape while allowing CSS gradients to fill it.
+  for(let r=0;r<=Math.ceil(usableH/spacing);r++){
+    for(let c=0;c<=Math.ceil(usableW/spacing);c++){
+      const x=margin+c*spacing+(r%2)*spacing/2,y=margin+r*spacing;
+      if(x+size>w-margin+.01||y+size>h-margin+.01)continue;
+      const d=document.createElement('div');d.style.cssText=`position:absolute;left:${x}px;top:${y}px;width:${size}px;height:${size}px;`;
+      let fill=color;
+      if(mode==='pantone')fill=colors.length?colors[(r*37+c)%colors.length]:color;
+      if(mode==='gradient'){
+        const svg=shapeSVG(shape,'#ffffff',size,false);
+        d.innerHTML=svg;
+        const shapeEl=d.querySelector('svg');
+        if(shapeEl){
+          const gradId='pg-'+r+'-'+c;
+          const ns='http://www.w3.org/2000/svg';
+          const gradient=document.createElementNS(ns,'linearGradient');gradient.id=gradId;
+          if(gradMode==='all'){
+            gradient.setAttribute('gradientUnits','userSpaceOnUse');
+            gradient.setAttribute('x1',String(-x));gradient.setAttribute('y1','0');
+            gradient.setAttribute('x2',String(w-x));gradient.setAttribute('y2','0');
+          }else{gradient.setAttribute('x1','0%');gradient.setAttribute('y1','0%');gradient.setAttribute('x2','100%');gradient.setAttribute('y2','100%');}
+          for(const [offset,col] of [['0%',color],['100%',color2]]){const stop=document.createElementNS(ns,'stop');stop.setAttribute('offset',offset);stop.setAttribute('stop-color',col);gradient.appendChild(stop);}
+          const defs=document.createElementNS(ns,'defs');defs.appendChild(gradient);shapeEl.prepend(defs);
+          shapeEl.querySelectorAll('path,circle,rect,polygon,ellipse').forEach(el=>{el.setAttribute('fill','url(#'+gradId+')');el.style.fill='url(#'+gradId+')';});
+        }
+      }else d.innerHTML=shapeSVG(shape,fill,size,false);
       polkaLayer.appendChild(d);
     }
   }
 }
-['polkaColor','polkaSize','polkaSpace','polkaOpacity'].forEach(id=>{
-  document.getElementById(id).addEventListener('input', renderPolka);
-});
+['polkaColor','polkaColor2','polkaSize','polkaSpace','polkaOpacity','polkaGradientMode','polkaColorMode'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{updatePolkaColorUI();renderPolka();}));
+updatePolkaColorUI();
 
-function makeDraggable(el, onEnd){
-  let sx,sy,ox,oy,dragging=false;
-  const start=(x,y)=>{
-    dragging=true;
-    const r = el.getBoundingClientRect();
-    const sr = stage.getBoundingClientRect();
-    sx=x; sy=y;
-    ox = r.left - sr.left + r.width/2;
-    oy = r.top - sr.top + r.height/2;
-  };
-  const move=(x,y)=>{
-    if(!dragging) return;
-    const sr = stage.getBoundingClientRect();
-    const nx = ox + (x-sx);
-    const ny = oy + (y-sy);
-    el.style.left = (nx/sr.width*100)+'%';
-    el.style.top = (ny/sr.height*100)+'%';
-  };
-  const end=()=>{ if(!dragging) return; dragging=false; if(onEnd) onEnd(el); };
-  el.addEventListener('touchstart', e=>{start(e.touches[0].clientX,e.touches[0].clientY);}, {passive:true});
-  el.addEventListener('touchmove', e=>{move(e.touches[0].clientX,e.touches[0].clientY);}, {passive:true});
-  el.addEventListener('touchend', end);
-  el.addEventListener('mousedown', e=>{start(e.clientX,e.clientY); e.preventDefault();});
-  window.addEventListener('mousemove', e=>move(e.clientX,e.clientY));
-  window.addEventListener('mouseup', end);
-}
-
-// ---- TAB2: NEON TEXT ----
-let replaceRules = [];
-let neonTexts = [];
-
-function addReplaceRule(){
-  const ch = document.getElementById('charInput').value;
-  if(!ch) return;
-  const shape = document.getElementById('shapeSelect').value;
-  const fillType = document.getElementById('fillSelect').value;
-  const color = document.getElementById('shapeColor').value;
-  const size = parseInt(document.getElementById('shapeSize').value);
-  replaceRules.push({char:ch, shape, fillType, color, size});
-  document.getElementById('charInput').value='';
-  renderReplaceList();
-  renderNeon();
-}
-document.getElementById('addReplace').onclick = addReplaceRule;
-
-function renderReplaceList(){
-  const list = document.getElementById('replaceList');
-  list.innerHTML='';
-  replaceRules.forEach((r,i)=>{
-    const d = document.createElement('div');
-    d.className='replace-item';
-    d.innerHTML = `<b>"${r.char}"</b> → ${r.shape} (${r.fillType}) <span style="width:14px;height:14px;border-radius:4px;display:inline-block;background:${r.color}"></span>
-      <button class="rm" data-i="${i}">✕</button>`;
-    d.querySelector('.rm').onclick = ()=>{ replaceRules.splice(i,1); renderReplaceList(); renderNeon(); };
-    list.appendChild(d);
-  });
-}
-
-document.getElementById('neonBoxToggle').onclick = function(){
-  const on = this.dataset.v==='off';
-  this.dataset.v = on?'on':'off';
-  this.classList.toggle('active', on);
-};
-document.getElementById('neonBoldToggle').onclick = function(){
-  const on = this.dataset.v==='off';
-  this.dataset.v = on?'on':'off';
-  this.classList.toggle('active', on);
-};
-document.getElementById('neonItalicToggle').onclick = function(){
-  const on = this.dataset.v==='off';
-  this.dataset.v = on?'on':'off';
-  this.classList.toggle('active', on);
-};
-
-document.getElementById('addNeonText').onclick = ()=>{
-  const text = document.getElementById('neonTextInput').value;
-  if(!text) return;
-  const fill = document.getElementById('neonFill').value;
-  const stroke = document.getElementById('neonStroke').value;
-  const strokeW = parseInt(document.getElementById('neonStrokeW').value);
-  const size = parseInt(document.getElementById('neonSize').value);
-  const font = document.getElementById('neonFont').value;
-  const bold = document.getElementById('neonBoldToggle').dataset.v==='on';
-  const italic = document.getElementById('neonItalicToggle').dataset.v==='on';
-  const box = document.getElementById('neonBoxToggle').dataset.v==='on';
-  const boxColor = document.getElementById('neonBoxColor').value;
-  const boxOpacity = parseInt(document.getElementById('neonBoxOpacity').value)/100;
-  const id = 'nt'+Date.now()+Math.floor(Math.random()*999);
-  neonTexts.push({id, text, fill, stroke, strokeW, size, font, bold, italic, box, boxColor, boxOpacity, left:30+Math.random()*10, top:30+Math.random()*20});
-  document.getElementById('neonTextInput').value='';
-  renderNeon();
-  renderNeonAddedList();
-  pushHistory();
-};
-
-function renderCharOrText(ch, nt){
-  const rule = replaceRules.find(r=> r.char.toLowerCase() === ch.toLowerCase());
-  if(rule){
-    const wrap = document.createElement('span');
-    wrap.style.display='inline-block';
-    wrap.style.verticalAlign='middle';
-    wrap.innerHTML = shapeSVG(rule.shape, rule.color, rule.size, rule.fillType==='outline');
-    return wrap;
-  }
-  if(ch===' '){
-    const sp = document.createElement('span');
-    sp.innerHTML='&nbsp;';
-    return sp;
-  }
-  const span = document.createElement('span');
-  span.textContent = ch;
-  span.style.color = nt.fill;
-  const sw = nt.strokeW || 0;
-  span.style.textShadow = sw>0 ? `
-    -${sw}px -${sw}px 0 ${nt.stroke}, ${sw}px -${sw}px 0 ${nt.stroke},
-    -${sw}px ${sw}px 0 ${nt.stroke}, ${sw}px ${sw}px 0 ${nt.stroke},
-    -${sw}px 0 0 ${nt.stroke}, ${sw}px 0 0 ${nt.stroke},
-    0 -${sw}px 0 ${nt.stroke}, 0 ${sw}px 0 ${nt.stroke}` : 'none';
-  span.style.fontWeight= nt.bold ? '700' : '400';
-  span.style.fontStyle = nt.italic ? 'italic' : 'normal';
-  span.style.fontSize = nt.size+'px';
-  span.style.fontFamily = nt.font;
-  return span;
-}
-
-function renderNeon(){
-  neonLayer.innerHTML='';
-  neonTexts.forEach((nt,i)=>{
-    const box = document.createElement('div');
-    box.className='draggable';
-    box.dataset.neonIndex = i;
-    box.style.left = nt.left+'%'; box.style.top = nt.top+'%';
-    box.style.transform='translate(-50%,-50%)';
-    box.style.display='flex';
-    box.style.flexWrap='nowrap';
-    box.style.whiteSpace='pre';
-    box.style.width='max-content';
-    box.style.alignItems='center';
-    box.style.justifyContent='center';
-    box.style.maxWidth = 'none';
-    box.style.textAlign='center';
-    if(nt.box){
-      const rgb = hexToRgb(nt.boxColor||'#ffffff');
-      box.style.background = `rgba(${rgb.r},${rgb.g},${rgb.b},${nt.boxOpacity!=null?nt.boxOpacity:1})`;
-      box.style.padding = '6px 10px';
-      box.style.borderRadius = '0';
-      box.style.boxShadow = 'none';
-    }
-    [...nt.text].forEach(ch=>{
-      box.appendChild(renderCharOrText(ch, nt));
-    });
-    makeDraggable(box, neonDragEnd);
-    box.addEventListener('click', (e)=>{ e.stopPropagation(); selectNeonForEdit(i); });
-    neonLayer.appendChild(box);
-  });
-}
-
-function neonDragEnd(el){
-  const idx = parseInt(el.dataset.neonIndex);
-  if(!isNaN(idx) && neonTexts[idx]){
-    neonTexts[idx].left = parseFloat(el.style.left);
-    neonTexts[idx].top = parseFloat(el.style.top);
-  }
-  pushHistory();
-}
-
-function selectNeonForEdit(i){
-  document.querySelector('.maintab-btn[data-tab="t2"]').click();
-  document.querySelector('[data-sub="s2c"]').click();
-  renderNeonAddedList();
-  const item = document.querySelectorAll('#neonAddedList .added-item')[i];
-  if(item){
-    item.scrollIntoView({behavior:'smooth', block:'center'});
-    item.style.boxShadow = '0 0 0 3px var(--neon2)';
-    setTimeout(()=>{ item.style.boxShadow = '0 2px 10px rgba(150,120,200,.12)'; }, 1200);
-  }
-}
-
-function renderNeonAddedList(){
-  const list = document.getElementById('neonAddedList');
-  list.innerHTML='';
-  const emptyHint = document.getElementById('neonAddedEmptyHint');
-  if(emptyHint) emptyHint.style.display = neonTexts.length ? 'none' : 'block';
-  neonTexts.forEach((nt,i)=>{
-    const item = document.createElement('div');
-    item.className='added-item';
-    item.innerHTML = `
-      <div class="hd">
-        <input type="text" value="${nt.text.replace(/"/g,'&quot;')}" id="ntText${i}">
-        <button class="rm" id="ntRm${i}">✕</button>
-      </div>
-      <div class="row" style="margin-bottom:0;">
-        <label class="small">Fill</label><input type="color" id="ntFill${i}" value="${nt.fill}">
-        <label class="small">Outline</label><input type="color" id="ntStroke${i}" value="${nt.stroke}">
-      </div>
-      <div class="row" style="margin-bottom:0;">
-        <label class="small">Size</label><input type="range" id="ntSize${i}" min="18" max="72" value="${nt.size}"><span class="range-val" id="ntSize${i}Val">${nt.size}</span>
-      </div>
-      <div class="row" style="margin-bottom:0;">
-        <label class="small">Outline w</label><input type="range" id="ntStrokeW${i}" min="0" max="6" value="${nt.strokeW||0}"><span class="range-val" id="ntStrokeW${i}Val">${nt.strokeW||0}</span>
-      </div>
-      <div class="row" style="margin-bottom:0;">
-        <button class="chip${nt.box?' active':''}" id="ntBox${i}" data-v="${nt.box?'on':'off'}">🗨 Text box</button>
-        <input type="color" id="ntBoxColor${i}" value="${nt.boxColor||'#ffffff'}">
-      </div>`;
-    item.querySelector('#ntText'+i).addEventListener('input', e=>{ neonTexts[i].text = e.target.value; renderNeon(); });
-    item.querySelector('#ntFill'+i).addEventListener('input', e=>{ neonTexts[i].fill = e.target.value; renderNeon(); });
-    item.querySelector('#ntStroke'+i).addEventListener('input', e=>{ neonTexts[i].stroke = e.target.value; renderNeon(); });
-    const sizeRange = item.querySelector('#ntSize'+i);
-    sizeRange.addEventListener('input', e=>{
-      neonTexts[i].size = parseInt(e.target.value);
-      document.getElementById('ntSize'+i+'Val').textContent = e.target.value;
-      renderNeon();
-    });
-    const strokeWRange = item.querySelector('#ntStrokeW'+i);
-    strokeWRange.addEventListener('input', e=>{
-      neonTexts[i].strokeW = parseInt(e.target.value);
-      document.getElementById('ntStrokeW'+i+'Val').textContent = e.target.value;
-      renderNeon();
-    });
-    item.querySelector('#ntBox'+i).addEventListener('click', function(){
-      const on = this.dataset.v==='off';
-      this.dataset.v = on?'on':'off';
-      this.classList.toggle('active', on);
-      neonTexts[i].box = on;
-      renderNeon();
-    });
-    item.querySelector('#ntBoxColor'+i).addEventListener('input', e=>{ neonTexts[i].boxColor = e.target.value; renderNeon(); });
-    item.querySelector('#ntRm'+i).addEventListener('click', ()=>{
-      neonTexts.splice(i,1); renderNeon(); renderNeonAddedList(); pushHistory();
-    });
-    list.appendChild(item);
-  });
-}
-
-// ---- TAB3: IMAGE-IN-TEXT ----
-let itState = { text:'', align:'center', gaps:[], groupScale:100, font:'-apple-system,Arial,sans-serif' };
-
-function flattenWords(text){
-  return text.split('\n').flatMap(line=>line.split(' ').filter(w=>w.length));
-}
-
-function readItSettings(){
-  itState.text = document.getElementById('itText').value.replace(/\r/g,'');
-  itState.align = document.getElementById('itAlign').value;
-  itState.size = document.getElementById('itSize').value;
-  itState.letter = document.getElementById('itLetter').value;
-  itState.line = document.getElementById('itLine').value;
-  itState.color = document.getElementById('itColor').value;
-  itState.font = document.getElementById('itFont').value;
-  const words = flattenWords(itState.text);
-  itState.gaps = words.map((w,i)=> itState.gaps[i] || {img:null, size:100, radius:0, borderW:0, borderColor:'#ffffff', heightPct:100});
-}
-
-['itText','itAlign','itSize','itLetter','itLine','itColor','itFont'].forEach(id=>{
-  document.getElementById(id).addEventListener('input', ()=>{
-    const prevWordCount = flattenWords(itState.text).length;
-    readItSettings();
-    const words = flattenWords(itState.text);
-    if(words.length !== prevWordCount) buildGapList(words);
-    renderImgText();
-    debouncedPushHistory();
-  });
-});
-
-document.getElementById('groupScale').addEventListener('input', e=>{
-  itState.groupScale = parseInt(e.target.value);
-  document.getElementById('groupScaleVal').textContent = e.target.value+'%';
-  renderImgText();
-});
-
-function buildGapList(words){
-  const list = document.getElementById('gapList');
-  list.innerHTML='';
-  words.forEach((w,i)=>{
-    const row = document.createElement('div');
-    row.className='gap-item';
-    const g = itState.gaps[i];
-    row.innerHTML = `
-      <div class="top">
-        <div class="thumb" id="thumb${i}" style="${g.img?`background-image:url(${g.img})`:''}"></div>
-        <div class="lbl">after "${w}"</div>
-        <button class="file-btn" type="button" id="gapBtn${i}">Choose image</button>
-        <input type="file" accept="image/*" id="gapInput${i}">
-      </div>
-      <div class="row" style="margin-bottom:0;">
-        <label class="small">Size</label><input type="range" id="gapSize${i}" min="40" max="220" value="${g.size}"><span class="range-val" id="gapSize${i}Val">${g.size}</span>
-        <label class="small">Round</label><input type="range" id="gapRadius${i}" min="0" max="50" value="${g.radius}"><span class="range-val" id="gapRadius${i}Val">${g.radius}</span>
-      </div>
-      <div class="row" style="margin-bottom:0;">
-        <label class="small">Height</label><input type="range" id="gapHeight${i}" min="30" max="100" value="${g.heightPct!=null?g.heightPct:100}"><span class="range-val" id="gapHeight${i}Val">${g.heightPct!=null?g.heightPct:100}</span>
-        <label class="small">Border</label><input type="range" id="gapBorderW${i}" min="0" max="10" value="${g.borderW}"><span class="range-val" id="gapBorderW${i}Val">${g.borderW}</span>
-        <input type="color" id="gapBorderColor${i}" value="${g.borderColor}">
-      </div>`;
-    row.querySelector('#gapBtn'+i).onclick = ()=> row.querySelector('#gapInput'+i).click();
-    row.querySelector('#gapInput'+i).onchange = e=>{
-      const f = e.target.files[0]; if(!f) return;
-      const reader = new FileReader();
-      reader.onload = ev=>{
-        itState.gaps[i].img = ev.target.result;
-        document.getElementById('thumb'+i).style.backgroundImage = `url(${ev.target.result})`;
-        renderImgText();
-        pushHistory();
-      };
-      reader.readAsDataURL(f);
-    };
-    row.querySelector('#gapSize'+i).oninput = e=>{ itState.gaps[i].size = parseInt(e.target.value); document.getElementById('gapSize'+i+'Val').textContent=e.target.value; renderImgText(); };
-    row.querySelector('#gapRadius'+i).oninput = e=>{ itState.gaps[i].radius = parseInt(e.target.value); document.getElementById('gapRadius'+i+'Val').textContent=e.target.value; renderImgText(); };
-    row.querySelector('#gapHeight'+i).oninput = e=>{ itState.gaps[i].heightPct = parseInt(e.target.value); document.getElementById('gapHeight'+i+'Val').textContent=e.target.value; renderImgText(); };
-    row.querySelector('#gapBorderW'+i).oninput = e=>{ itState.gaps[i].borderW = parseInt(e.target.value); document.getElementById('gapBorderW'+i+'Val').textContent=e.target.value; renderImgText(); };
-    row.querySelector('#gapBorderColor'+i).oninput = e=>{ itState.gaps[i].borderColor = e.target.value; renderImgText(); };
-    list.appendChild(row);
-  });
-}
-
-function renderImgText(){
-  imgtextLayer.innerHTML='';
-  if(!itState.text.trim()) return;
-  const scale = (itState.groupScale||100)/100;
-  const lines = itState.text.split('\n');
-  const isFillAuto = itState.align==='fillauto';
-  const outer = document.createElement('div');
-  outer.style.position='absolute';
-  outer.style.top='50%'; outer.style.left='50%'; outer.style.transform='translate(-50%,-50%)';
-  outer.style.maxWidth='90%';
-  outer.style.width = isFillAuto ? 'auto' : '90%';
-  outer.style.display='flex';
-  outer.style.flexDirection='column';
-  outer.style.gap=(itState.line*scale)+'px';
-  if(itState.align==='center') outer.style.alignItems='center';
-  if(itState.align==='left') outer.style.alignItems='flex-start';
-  if(itState.align==='right') outer.style.alignItems='flex-end';
-  if(itState.align==='fill') outer.style.alignItems='stretch';
-  if(isFillAuto) outer.style.alignItems='center';
-
-  let wordIndex = 0;
-  const wraps = [];
-  lines.forEach(line=>{
-    const words = line.split(' ').filter(w=>w.length);
-    const wrap = document.createElement('div');
-    wrap.style.width = isFillAuto ? 'auto' : '100%';
-    wrap.style.maxWidth='100%';
-    wrap.style.display='flex';
-    wrap.style.flexWrap = isFillAuto ? 'nowrap' : 'wrap';
-    wrap.style.alignItems='center';
-    wrap.style.gap=(itState.line*scale)+'px '+Math.max(4,itState.letter*scale)+'px';
-    if(itState.align==='center') wrap.style.justifyContent='center';
-    if(itState.align==='left') wrap.style.justifyContent='flex-start';
-    if(itState.align==='right') wrap.style.justifyContent='flex-end';
-    if(itState.align==='fill'){ wrap.style.justifyContent='space-between'; }
-    if(isFillAuto){ wrap.style.justifyContent = words.length>1 ? 'space-between' : 'center'; }
-
-    words.forEach(w=>{
-      const wSpan = document.createElement('span');
-      wSpan.textContent = w;
-      wSpan.style.fontSize = (itState.size*scale)+'px';
-      wSpan.style.fontWeight='800';
-      wSpan.style.color = itState.color;
-      wSpan.style.letterSpacing = (itState.letter*scale)+'px';
-      wSpan.style.whiteSpace='nowrap';
-      if(itState.font && itState.font!=='auto'){ wSpan.style.fontFamily = itState.font; }
-      wrap.appendChild(wSpan);
-      const g = itState.gaps[wordIndex];
-      if(g && g.img){
-        const h = (parseInt(itState.size)*(g.size/100))*scale;
-        const heightPct = (g.heightPct!=null ? g.heightPct : 100)/100;
-        const visH = h*heightPct;
-        const box = document.createElement('div');
-        box.style.display='inline-flex';
-        box.style.flex='none';
-        box.style.alignItems='center';
-        box.style.justifyContent='center';
-        box.style.verticalAlign='middle';
-        box.style.height = visH+'px';
-        box.style.overflow='hidden';
-        box.style.borderRadius = (g.radius*scale)+'px';
-        box.style.border = g.borderW>0 ? `${g.borderW*scale}px solid ${g.borderColor}` : 'none';
-        const im = document.createElement('img');
-        im.src = g.img;
-        im.style.height = h+'px';
-        im.style.width='auto';
-        im.style.maxWidth='none';
-        im.style.flex='none';
-        im.style.display='block';
-        if(isFillAuto && !im.complete){
-          im.addEventListener('load', ()=>{ if(itState.align==='fillauto') renderImgText(); }, {once:true});
-        }
-        box.appendChild(im);
-        wrap.appendChild(box);
-      }
-      wordIndex++;
-    });
-    outer.appendChild(wrap);
-    wraps.push(wrap);
-  });
-  imgtextLayer.appendChild(outer);
-
-  if(isFillAuto){
-    // measure natural width of the longest line (text + any inserted images), then
-    // stretch every line to that same width so words/images space out evenly (space-between)
-    let maxW = 0;
-    wraps.forEach(w=>{ maxW = Math.max(maxW, w.scrollWidth); });
-    const stageW = stage.clientWidth || 320;
-    const capped = Math.min(maxW, stageW*0.9);
-    outer.style.width = capped+'px';
-    wraps.forEach(w=>{ w.style.width='100%'; });
-  }
-}
-
-const expStatus = document.getElementById('expStatus');
-function setStatus(s){ expStatus.textContent = s; }
-
-function nextFrame(){ return new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))); }
-async function captureCanvas(forceNoBg=false){
-  if(typeof html2canvas !== 'function') throw new Error('html2canvas is unavailable');
-  const hasBg = hasBackground() && !forceNoBg;
-  const old = {bgImage:bgLayer.style.backgroundImage,bgColor:bgLayer.style.backgroundColor,stageImage:stage.style.backgroundImage,stageColor:stage.style.backgroundColor};
-  try {
-    if(!hasBg){
-      bgLayer.style.backgroundImage='none'; bgLayer.style.backgroundColor='transparent';
-      stage.style.backgroundImage='none'; stage.style.backgroundColor='transparent';
-    }
-    await document.fonts?.ready;
-    await nextFrame();
-    let scale=2;
-    if(hasBg && imgNaturalW && stage.clientWidth>0){
-      const ratio=imgNaturalW/stage.clientWidth;
-      if(Number.isFinite(ratio)&&ratio>0) scale=Math.min(Math.max(ratio,0.5),6);
-    }
-    const c=await html2canvas(stage,{backgroundColor:null,useCORS:true,allowTaint:false,scale,logging:false,imageTimeout:15000});
-    if(!c.width||!c.height) throw new Error('Captured canvas is empty');
-    return c;
-  } finally {
-    bgLayer.style.backgroundImage=old.bgImage; bgLayer.style.backgroundColor=old.bgColor;
-    stage.style.backgroundImage=old.stageImage; stage.style.backgroundColor=old.stageColor;
-  }
-}
-function canvasBlob(canvas,type,quality){
-  return new Promise((resolve,reject)=>{
-    try {canvas.toBlob(blob=>blob?resolve(blob):reject(new Error('Canvas could not be encoded (possibly a cross-origin image)')),type,quality);}
-    catch(e){reject(e);}
-  });
-}
-function saveBlob(blob,filename){
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a'); a.href=url; a.download=filename;
-  a.style.display='none'; document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(()=>URL.revokeObjectURL(url),60000);
-}
-function exportError(err){console.error('NeonMoon export failed:',err);setStatus('Export failed: '+(err?.message||String(err)));}
-async function exportStill(filename,type,transparent=false){
-  exportMenu.classList.remove('open'); setStatus('Exporting '+filename+'...');
-  try{
-    const canvas=await captureCanvas(transparent);
-    if(type==='image/jpeg'){
-      const flat=document.createElement('canvas');flat.width=canvas.width;flat.height=canvas.height;
-      const ctx=flat.getContext('2d');ctx.fillStyle='#ffffff';ctx.fillRect(0,0,flat.width,flat.height);ctx.drawImage(canvas,0,0);
-      saveBlob(await canvasBlob(flat,type,0.92),filename);
-    } else saveBlob(await canvasBlob(canvas,type),filename);
-    setStatus('Downloaded '+filename);
-  }catch(err){exportError(err);}
-}
-document.getElementById('expPng').onclick=()=>exportStill('neonmoon.jpg','image/jpeg');
-document.getElementById('expTransparent').onclick=()=>exportStill('neonmoon-transparent.png','image/png',true);
-
-function makeGif(width,height){
-  if(typeof GIF!=='function') throw new Error('GIF encoder is unavailable');
-  return new GIF({workers:2,quality:10,width,height,workerScript:__gifWorkerBlobUrl()});
-}
-function addGifFrame(gif,canvas,delay){
-  const frame=document.createElement('canvas');frame.width=gif.options.width;frame.height=gif.options.height;
-  frame.getContext('2d').drawImage(canvas,0,0,frame.width,frame.height);
-  gif.addFrame(frame,{delay,copy:true});
-}
-function finishGif(gif,filename){
-  return new Promise((resolve,reject)=>{
-    gif.on('finished',blob=>{saveBlob(blob,filename);resolve();});
-    gif.on('abort',()=>reject(new Error('GIF encoding aborted')));
-    gif.render();
-  });
-}
-document.getElementById('expGif').onclick=async()=>{
-  exportMenu.classList.remove('open');setStatus('Rendering motion GIF...');
-  try{
-    const first=await captureCanvas();const gif=makeGif(first.width,first.height);
-    addGifFrame(gif,first,110);
-    for(let i=1;i<14;i++){
-      await new Promise(r=>setTimeout(r,90));
-      addGifFrame(gif,await captureCanvas(),110);
-    }
-    await finishGif(gif,'neonmoon-motion.gif');setStatus('Motion GIF downloaded.');
-  }catch(err){exportError(err);}
-};
-let beforeSnapshot=null;
-document.getElementById('expBA').onclick=async()=>{
-  exportMenu.classList.remove('open');
-  try{
-    if(!beforeSnapshot){beforeSnapshot=await captureCanvas();setStatus('Before saved. Edit your image, then export again.');return;}
-    setStatus('Building Before→After GIF...');
-    const after=await captureCanvas();const gif=makeGif(after.width,after.height);
-    addGifFrame(gif,beforeSnapshot,900);addGifFrame(gif,after,900);
-    await finishGif(gif,'neonmoon-before-after.gif');beforeSnapshot=null;
-    setStatus('Before→After GIF downloaded.');
-  }catch(err){exportError(err);}
-};
-
-// ---- UNDO / REDO ----
-let historyStack = [];
-let historyIndex = -1;
-let restoringHistory = false;
-let historyDebounceTimer = null;
-
-function snapshotState(){
-  return JSON.stringify({
-    placedDots,
-    neonTexts,
-    itState,
-    bg: {
-      image: bgLayer.style.backgroundImage || '',
-      color: bgLayer.style.backgroundColor || '',
-      w: imgNaturalW, h: imgNaturalH,
-      aspect: stage.style.aspectRatio || '1/1'
-    }
-  });
-}
-
-function pushHistory(){
-  if(restoringHistory) return;
-  const snap = snapshotState();
-  if(historyIndex>=0 && historyStack[historyIndex]===snap) return;
-  historyStack = historyStack.slice(0, historyIndex+1);
-  historyStack.push(snap);
-  historyIndex = historyStack.length-1;
-  if(historyStack.length>50){ historyStack.shift(); historyIndex--; }
-  updateUndoRedoBtns();
-}
-function debouncedPushHistory(){
-  clearTimeout(historyDebounceTimer);
-  historyDebounceTimer = setTimeout(pushHistory, 500);
-}
-
-function restoreState(snap){
-  restoringHistory = true;
-  const s = JSON.parse(snap);
-  placedDots = s.placedDots || [];
-  neonTexts = s.neonTexts || [];
-  itState = s.itState || itState;
-
-  bgLayer.style.backgroundImage = s.bg.image || 'none';
-  bgLayer.style.backgroundColor = s.bg.color || '';
-  imgNaturalW = s.bg.w; imgNaturalH = s.bg.h;
-  stage.style.aspectRatio = s.bg.aspect || '1/1';
-
-  repaintDots();
-  renderPolka();
-  renderNeon();
-  renderNeonAddedList();
-
-  const itTextEl = document.getElementById('itText');
-  if(itTextEl) itTextEl.value = itState.text || '';
-  const itFontEl = document.getElementById('itFont');
-  if(itFontEl && itState.font) itFontEl.value = itState.font;
-  const itAlignEl = document.getElementById('itAlign');
-  if(itAlignEl && itState.align) itAlignEl.value = itState.align;
-  buildGapList(flattenWords(itState.text||''));
-  renderImgText();
-
-  const activeTab = document.querySelector('.maintab-btn.active').dataset.tab;
-  drawToggle.style.display = (activeTab==='t1' && hasBackground()) ? 'inline-block' : 'none';
-
-  restoringHistory = false;
-  updateUndoRedoBtns();
-}
-
-function undo(){
-  if(historyIndex<=0) return;
-  historyIndex--;
-  restoreState(historyStack[historyIndex]);
-}
-function redo(){
-  if(historyIndex>=historyStack.length-1) return;
-  historyIndex++;
-  restoreState(historyStack[historyIndex]);
-}
-function updateUndoRedoBtns(){
-  const u = document.getElementById('undoBtn'), r = document.getElementById('redoBtn');
-  if(u) u.disabled = historyIndex<=0;
-  if(r) r.disabled = historyIndex>=historyStack.length-1;
-}
-document.getElementById('undoBtn').addEventListener('click', undo);
-document.getElementById('redoBtn').addEventListener('click', redo);
-pushHistory();
-}catch(err){
-  showDebugError('App init error: ' + (err && (err.stack || err.message) || err));
-}
-</script>
-<script>
-// Preview-only zoom. The image export continues to use the unzoomed canvas.
-(function(){
- const stageEl=document.getElementById('stage');
- const zoomLabel=document.getElementById('viewZoomLabel');
- let zoom=1;
- function setZoom(v){zoom=Math.max(.5,Math.min(2.5,v));stageEl.style.setProperty('--view-zoom',zoom);zoomLabel.textContent=Math.round(zoom*100)+'%';}
- document.getElementById('viewMinus').addEventListener('click',()=>setZoom(zoom-.15));
- document.getElementById('viewPlus').addEventListener('click',()=>setZoom(zoom+.15));
- document.getElementById('viewFit').addEventListener('click',()=>setZoom(1));
- // One-finger drag moves the photo within the preview without changing export.
- let panX=0,panY=0,drag=null;
- stageEl.addEventListener('pointerdown',e=>{if(e.pointerType==='touch' && e.isPrimary){drag={id:e.pointerId,x:e.clientX,y:e.clientY,px:panX,py:panY};stageEl.setPointerCapture(e.pointerId);}}, {passive:true});
- stageEl.addEventListener('pointermove',e=>{if(drag&&e.pointerId===drag.id){panX=drag.px+e.clientX-drag.x;panY=drag.py+e.clientY-drag.y;stageEl.style.setProperty('--photo-pan-x',panX+'px');stageEl.style.setProperty('--photo-pan-y',panY+'px');}}, {passive:true});
- const endDrag=e=>{if(drag&&e.pointerId===drag.id)drag=null;};
- stageEl.addEventListener('pointerup',endDrag);stageEl.addEventListener('pointercancel',endDrag);
- let distance=0,initial=1;
- stageEl.addEventListener('touchstart',e=>{if(e.touches.length===2){distance=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);initial=zoom;}},{passive:true});
- stageEl.addEventListener('touchmove',e=>{if(e.touches.length===2&&distance){const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);setZoom(initial*d/distance);}},{passive:true});
- stageEl.addEventListener('touchend',e=>{if(e.touches.length<2)distance=0;},{passive:true});
 })();
 </script>
 
