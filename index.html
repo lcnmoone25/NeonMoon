@@ -498,8 +498,8 @@ input[type=file]{position:absolute;width:1px;height:1px;padding:0;margin:-1px;ov
     <div class="right"><span>배경</span><span class="sep">|</span><span>폰트</span><span class="sep">|</span><span>도트</span><span class="sep">|</span><span>저장</span></div>
   </div>
   <div class="export-menu" id="exportMenu">
-    <button id="expPng">🖼 Export PNG</button>
-    <button id="expJpg">🖼 Export JPG</button>
+    <button id="expPng">⬇ Save image (JPG)</button>
+
     <button id="expTransparent">🫥 Transparent PNG (no bg)</button>
     <button id="expGif">✨ Motion GIF</button>
     <button id="expBA">↔ Before→After GIF</button>
@@ -1130,7 +1130,8 @@ function renderPolka(){
     for(let c=0;c<cols;c++){
       const d=document.createElement('div');
       d.style.position='absolute';
-      d.style.left=(c*spacing)+'px'; d.style.top=(r*spacing)+'px';
+      d.style.left=(5 + c*spacing + (r%2)*spacing/2)+'px'; d.style.top=(5 + r*spacing)+'px';
+      if(5+c*spacing+(r%2)*spacing/2+size>stageW-5 || 5+r*spacing+size>stageH-5) continue;
       d.style.width=size+'px'; d.style.height=size+'px';
       d.innerHTML=shapeSVG(shape,color,size,false);
       polkaLayer.appendChild(d);
@@ -1603,9 +1604,9 @@ async function exportStill(filename,type,transparent=false){
     setStatus('Downloaded '+filename);
   }catch(err){exportError(err);}
 }
-document.getElementById('expPng').onclick=()=>exportStill('neonmoon.png','image/png');
+document.getElementById('expPng').onclick=()=>exportStill('neonmoon.jpg','image/jpeg');
 document.getElementById('expTransparent').onclick=()=>exportStill('neonmoon-transparent.png','image/png',true);
-document.getElementById('expJpg').onclick=()=>exportStill('neonmoon.jpg','image/jpeg');
+
 function makeGif(width,height){
   if(typeof GIF!=='function') throw new Error('GIF encoder is unavailable');
   return new GIF({workers:2,quality:10,width,height,workerScript:__gifWorkerBlobUrl()});
@@ -1811,5 +1812,60 @@ pushHistory();
   new MutationObserver(()=>document.querySelectorAll('input[type="range"]').forEach(setupEditableRange))
     .observe(document.body,{childList:true,subtree:true});
 })();
-</script></body>
+</script>
+<script>
+(function(){
+ const KEY='neonmoon-project-v2';
+ const exportMenu=document.getElementById('exportMenu');
+ const projectSave=document.createElement('button');projectSave.textContent='💾 Save project (.json)';
+ const projectLoad=document.createElement('button');projectLoad.textContent='📂 Open project (.json)';
+ const picker=document.createElement('input');picker.type='file';picker.accept='.json,application/json';picker.hidden=true;
+ exportMenu.append(projectSave,projectLoad,picker);
+ function getProject(){
+   const controls={};document.querySelectorAll('input[id],select[id],textarea[id]').forEach(el=>{
+     if(el.type==='file'||el.type==='button'||el.type==='hidden'||el.id==='bgFile')return;
+     controls[el.id]=el.type==='checkbox'?el.checked:el.value;
+   });
+   return {version:2,snapshot:JSON.parse(snapshotState()),controls,
+    polkaToggle:document.querySelector('.polka-toggle-chip.active')?.dataset.v,
+    polkaShape:document.querySelector('.polka-shape-chip.active')?.dataset.v,
+    created:new Date().toISOString()};
+ }
+ function downloadProject(){
+   const blob=new Blob([JSON.stringify(getProject())],{type:'application/json'});
+   saveBlob(blob,'neonmoon-project.json');exportMenu.classList.remove('open');
+ }
+ async function loadProject(project){
+   if(!project||!project.snapshot||!project.snapshot.bg)throw Error('Invalid NeonMoon project');
+   Object.entries(project.controls||{}).forEach(([id,value])=>{
+     const el=document.getElementById(id);if(!el||el.type==='file')return;
+     if(el.type==='checkbox')el.checked=!!value;else el.value=value;
+     if(el.type==='range'){
+       const n=el.parentElement?.querySelector('.compact-range-number');if(n)n.value=value;
+       const label=document.getElementById(id+'Val');if(label)label.textContent=value;
+     }
+   });
+   for(const [selector,v] of [['.polka-toggle-chip',project.polkaToggle],['.polka-shape-chip',project.polkaShape]]){
+     if(!v)continue;document.querySelectorAll(selector).forEach(el=>el.classList.toggle('active',el.dataset.v===v));
+   }
+   restoreState(JSON.stringify(project.snapshot));
+   stage.style.setProperty('--natural-stage-ratio', (imgNaturalW&&imgNaturalH)?imgNaturalW+' / '+imgNaturalH:'1 / 1');
+   requestAnimationFrame(()=>{updateNaturalStageSize();repaintDots();renderPolka();renderNeon();});
+   pushHistory();setStatus('Project restored');
+ }
+ projectSave.onclick=downloadProject;
+ projectLoad.onclick=()=>picker.click();
+ picker.onchange=async()=>{try{const f=picker.files[0];if(!f)return;await loadProject(JSON.parse(await f.text()));exportMenu.classList.remove('open');}catch(e){showDebugError('Cannot open project: '+e.message)}picker.value='';};
+ // Keep a recent editing session across same-tab navigation (including returning from image preview).
+ // sessionStorage may reject large photos, so explicit JSON export remains the reliable backup.
+ let saveTimer;
+ function autoSave(){clearTimeout(saveTimer);saveTimer=setTimeout(()=>{try{sessionStorage.setItem(KEY,JSON.stringify(getProject()));}catch(e){console.warn('Session autosave unavailable:',e.message);}},700);}
+ document.addEventListener('input',autoSave,true);document.addEventListener('change',autoSave,true);
+ const oldPush=pushHistory;
+ pushHistory=function(){oldPush();autoSave();};
+ window.addEventListener('pagehide',()=>{try{sessionStorage.setItem(KEY,JSON.stringify(getProject()));}catch(e){}});
+ try{const saved=sessionStorage.getItem(KEY);if(saved){loadProject(JSON.parse(saved)).catch(console.warn);}}catch(e){console.warn(e);}
+})();
+</script>
+</body>
 </html>
