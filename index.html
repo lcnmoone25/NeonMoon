@@ -1193,6 +1193,63 @@ function renderNeon(){/* Retain existing placed neon elements when editing other
 function setStatus(msg){console.info('[NeonMoon]',msg);}
 function saveBlob(blob,name){const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);}
 async function exportImage(transparent=false){const w=imgNaturalW||stage.clientWidth,h=imgNaturalH||stage.clientHeight;const canvas=await html2canvas(stage,{backgroundColor:transparent?null:'#ffffff',scale:Math.min(4,Math.max(1,w/stage.clientWidth)),useCORS:true});canvas.toBlob(blob=>{if(blob)saveBlob(blob,'NeonMoon.'+(transparent?'png':'jpg'));},transparent?'image/png':'image/jpeg',.94);}
+// Motion GIF export: capture actual animated DOM frames, then encode with bundled gif.js.
+async function exportMotionGif(beforeAfter=false){
+  const button=document.getElementById(beforeAfter?'expBA':'expGif');
+  const status=document.getElementById('expStatus');
+  const old=button.textContent;
+  const busy=(message)=>{button.textContent=message;button.disabled=true;status.textContent=message;status.style.display='block';};
+  let workerUrl=null, animations=[];
+  try{
+    exportMenu.classList.remove('open');
+    busy('🐰 Processing, please wait ♡');
+    await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+    if(typeof GIF!=='function')throw Error('GIF encoder is unavailable');
+    const rect=stage.getBoundingClientRect();
+    if(rect.width<1||rect.height<1)throw Error('Upload a photo first');
+    const scale=Math.min(1.6,720/Math.max(rect.width,rect.height));
+    const width=Math.max(1,Math.round(rect.width*scale));
+    const height=Math.max(1,Math.round(rect.height*scale));
+    const fps=8, speed=Math.max(.25,Number(document.getElementById('motionSpeed')?.value||100)/100);
+    const loops=Math.max(1,Number(document.getElementById('motionLoop')?.value||1));
+    const duration=Math.min(5,Math.max(1,1.7/speed));
+    const frames=Math.max(8,Math.min(28,Math.ceil(duration*fps)));
+    animations=[...dotLayer.querySelectorAll('.dot-el')].flatMap(el=>el.getAnimations());
+    const original=animations.map(a=>({a,time:a.currentTime,playState:a.playState}));
+    animations.forEach(a=>a.pause());
+    workerUrl=__gifWorkerBlobUrl();
+    const gif=new GIF({workers:1,quality:12,width,height,workerScript:workerUrl,repeat:loops===1?-1:loops-1,background:'#ffffff'});
+    for(let i=0;i<frames;i++){
+      const t=i/(frames-1)*duration*1000;
+      animations.forEach(a=>{try{a.currentTime=t;}catch(e){}});
+      busy('🐰 Processing '+Math.round((i/frames)*80)+'%');
+      await new Promise(resolve=>requestAnimationFrame(resolve));
+      const canvas=await html2canvas(stage,{backgroundColor:'#ffffff',scale:width/rect.width,useCORS:true,logging:false});
+      gif.addFrame(canvas,{copy:true,delay:Math.round(1000/fps)});
+    }
+    original.forEach(({a,time,playState})=>{try{a.currentTime=time;if(playState==='running')a.play();}catch(e){}});
+    busy('🐰 Encoding GIF…');
+    const blob=await new Promise((resolve,reject)=>{
+      const timeout=setTimeout(()=>reject(Error('GIF encoding timed out')),90000);
+      gif.on('finished',b=>{clearTimeout(timeout);resolve(b)});
+      gif.on('abort',()=>{clearTimeout(timeout);reject(Error('GIF encoding cancelled'))});
+      gif.on('progress',p=>busy('🐰 Encoding '+Math.round(p*100)+'%'));
+      gif.render();
+    });
+    saveBlob(blob,beforeAfter?'NeonMoon-before-after.gif':'NeonMoon-motion.gif');
+    status.textContent='GIF ready ♡';
+  }catch(e){
+    console.error('Motion GIF export failed',e);
+    status.textContent='GIF export failed: '+e.message;
+    alert('Could not save Motion GIF: '+e.message);
+  }finally{
+    animations.forEach(a=>{try{a.play()}catch(e){}});
+    if(workerUrl)setTimeout(()=>URL.revokeObjectURL(workerUrl),3000);
+    button.disabled=false;button.textContent=old;
+  }
+}
+document.getElementById('expGif').onclick=()=>exportMotionGif(false);
+document.getElementById('expBA').onclick=()=>{alert('Before→After GIF is not available yet. Use Motion GIF to save your animation.');};
 const exportButtons=[...exportMenu.querySelectorAll('button')];exportButtons.forEach(btn=>{const t=btn.textContent.toLowerCase();if(t.includes('transparent'))btn.onclick=()=>exportImage(true);else if(t.includes('jpg')||t.includes('export')||t.includes('image')||t.includes('download'))btn.onclick=()=>exportImage(false);});
 for(const btn of document.querySelectorAll('button')){const t=(btn.id+' '+btn.textContent).toLowerCase();if(t.includes('undo'))btn.addEventListener('click',undo);if(t.includes('redo'))btn.addEventListener('click',redo);}
 window.updateNaturalStageSize=updateNaturalStageSize;
