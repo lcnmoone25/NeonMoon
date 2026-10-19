@@ -371,6 +371,17 @@ input[type=file]{position:absolute;width:1px;height:1px;padding:0;margin:-1px;ov
 }
 /* Mobile: picker is launched directly; legacy menu stays available only for desktop if needed */
 @media(max-width:700px){.bg-menu{top:auto!important;bottom:calc(100% + 6px)!important;left:8px!important;z-index:1001!important}}
+
+/* Natural-image canvas sizing: use the full preview area, preserve portrait/landscape ratio. */
+.stage-wrap{min-width:0}
+.stage{box-sizing:border-box;flex-shrink:0;max-height:none;}
+@media(max-width:700px){
+ .stage-wrap{padding:8px 8px 86px!important;min-height:130px!important}
+ .stage{width:var(--natural-stage-width, min(96vw, 48dvh))!important;max-width:calc(100% - 4px)!important;max-height:none!important;height:auto!important;aspect-ratio:var(--natural-stage-ratio, 1 / 1)!important;margin:auto!important}
+}
+@media(min-width:701px){
+ .stage{width:var(--natural-stage-width, min(540px, 92%));max-width:100%;aspect-ratio:var(--natural-stage-ratio, 1 / 1)!important;max-height:none}
+}
 </style>
 </head>
 <body>
@@ -741,6 +752,8 @@ document.getElementById('bgMenuImage').addEventListener('click', ()=>{ bgMenu.cl
 bgColorInput.addEventListener('input', ()=>{
   imgNaturalW = null; imgNaturalH = null;
   stage.style.aspectRatio = '1/1';
+  stage.style.setProperty('--natural-stage-ratio','1 / 1');
+  requestAnimationFrame(updateNaturalStageSize);
   bgLayer.style.backgroundImage = 'none';
   bgLayer.style.backgroundColor = bgColorInput.value;
   drawToggle.style.display = (document.querySelector('.maintab-btn.active').dataset.tab==='t1' && hasBackground()) ? 'inline-block' : 'none';
@@ -759,9 +772,11 @@ bgFileInput.addEventListener('change', e=>{
       imgNaturalW = img.naturalWidth;
       imgNaturalH = img.naturalHeight;
       stage.style.aspectRatio = imgNaturalW+'/'+imgNaturalH;
+      stage.style.setProperty('--natural-stage-ratio', imgNaturalW+' / '+imgNaturalH);
+      requestAnimationFrame(updateNaturalStageSize);
       bgLayer.style.backgroundColor = '';
       bgLayer.style.backgroundImage = `url("${dataUrl}")`;
-      bgLayer.style.backgroundSize = 'cover';
+      bgLayer.style.backgroundSize = '100% 100%';
       drawToggle.style.display = (document.querySelector('.maintab-btn.active').dataset.tab==='t1' && hasBackground()) ? 'inline-block' : 'none';
       pushHistory();
     };
@@ -771,6 +786,25 @@ bgFileInput.addEventListener('change', e=>{
   reader.onerror = ()=>showDebugError("Could not read selected image.");
   reader.readAsDataURL(f);
 });
+
+
+// Fit the actual image ratio into the available preview space without cropping.
+function updateNaturalStageSize(){
+  const wrap=document.querySelector('.stage-wrap');
+  if(!wrap || !stage) return;
+  const mobile=window.matchMedia('(max-width:700px)').matches;
+  const ratio=(imgNaturalW && imgNaturalH) ? imgNaturalW/imgNaturalH : 1;
+  const styles=getComputedStyle(wrap);
+  const innerW=Math.max(80,wrap.clientWidth-parseFloat(styles.paddingLeft)-parseFloat(styles.paddingRight)-8);
+  const reserved=mobile?86:24;
+  const innerH=Math.max(80,wrap.clientHeight-parseFloat(styles.paddingTop)-parseFloat(styles.paddingBottom)-reserved);
+  const width=Math.max(40,Math.min(innerW,innerH*ratio,mobile?1200:720));
+  stage.style.setProperty('--natural-stage-width',width+'px');
+  stage.style.setProperty('--natural-stage-ratio',ratio+' / 1');
+}
+window.addEventListener('resize',updateNaturalStageSize);
+if(typeof ResizeObserver!=='undefined') new ResizeObserver(updateNaturalStageSize).observe(document.querySelector('.stage-wrap'));
+requestAnimationFrame(updateNaturalStageSize);
 
 function hexToRgb(hex){
   const h = hex.replace('#','');
