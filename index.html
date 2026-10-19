@@ -504,7 +504,6 @@ input[type=file]{position:absolute;width:1px;height:1px;padding:0;margin:-1px;ov
 
     <button id="expTransparent">🫥 Transparent PNG (no bg)</button>
     <button id="expGif">✨ Motion GIF</button>
-    <button id="expBA">↔ Before→After GIF</button>
   </div>
   <div class="export-status-fixed" id="expStatus"></div>
 
@@ -1195,7 +1194,7 @@ function saveBlob(blob,name){const url=URL.createObjectURL(blob);const a=documen
 async function exportImage(transparent=false){const w=imgNaturalW||stage.clientWidth,h=imgNaturalH||stage.clientHeight;const canvas=await html2canvas(stage,{backgroundColor:transparent?null:'#ffffff',scale:Math.min(4,Math.max(1,w/stage.clientWidth)),useCORS:true});canvas.toBlob(blob=>{if(blob)saveBlob(blob,'NeonMoon.'+(transparent?'png':'jpg'));},transparent?'image/png':'image/jpeg',.94);}
 // Motion GIF export: capture actual animated DOM frames, then encode with bundled gif.js.
 async function exportMotionGif(beforeAfter=false){
-  const button=document.getElementById(beforeAfter?'expBA':'expGif');
+  const button=document.getElementById('expGif');
   const status=document.getElementById('expStatus');
   const old=button.textContent;
   const busy=(message)=>{button.textContent=message;button.disabled=true;status.textContent=message;status.style.display='block';};
@@ -1205,15 +1204,19 @@ async function exportMotionGif(beforeAfter=false){
     busy('🐰 Processing, please wait ♡');
     await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
     if(typeof GIF!=='function')throw Error('GIF encoder is unavailable');
-    const rect=stage.getBoundingClientRect();
-    if(rect.width<1||rect.height<1)throw Error('Upload a photo first');
-    // Encode a mobile-friendly GIF; capture frozen computed animation states rather
-    // than relying on html2canvas to evaluate CSS animations on its cloned DOM.
-    // Export at the source image resolution where practical, not at tiny preview resolution.
-    const sourceW=imgNaturalW||rect.width, sourceH=imgNaturalH||rect.height;
-    const scale=Math.min(1200/Math.max(sourceW,sourceH),sourceW/rect.width);
-    const width=Math.max(1,Math.round(rect.width*scale));
-    const height=Math.max(1,Math.round(rect.height*scale));
+    // Use the stage's untransformed CSS size. getBoundingClientRect() includes
+    // preview zoom transforms and can produce tiny GIFs on mobile Safari.
+    const cssW=stage.offsetWidth || stage.clientWidth;
+    const cssH=stage.offsetHeight || stage.clientHeight;
+    if(cssW<1||cssH<1)throw Error('Upload a photo first');
+    const sourceW=imgNaturalW || cssW;
+    const sourceH=imgNaturalH || cssH;
+    // Keep original aspect ratio and export at a useful image resolution.
+    // 1200px long edge by default; never downscale below 900px on normal photos.
+    const maxEdge=Math.min(1200,Math.max(900,Math.max(sourceW,sourceH)));
+    const ratio=cssW/cssH;
+    const width=ratio>=1?Math.round(maxEdge):Math.round(maxEdge*ratio);
+    const height=ratio>=1?Math.round(maxEdge/ratio):Math.round(maxEdge);
     const fps=8, speed=Math.max(.25,Number(document.getElementById('motionSpeed')?.value||100)/100);
     const loops=Math.max(1,Number(document.getElementById('motionLoop')?.value||1));
     const duration=Math.min(4,Math.max(1,1.6/speed));
@@ -1235,9 +1238,11 @@ async function exportMotionGif(beforeAfter=false){
         });
         busy('🐰 Processing, please wait ♡ '+Math.round((i/frames)*75)+'%');
         const canvas=await html2canvas(stage,{
-          backgroundColor:'#ffffff',scale:width/rect.width,useCORS:true,logging:false,
-          width:rect.width,height:rect.height,scrollX:0,scrollY:0,
+          backgroundColor:'#ffffff',scale:width/cssW,useCORS:true,logging:false,
+          width:cssW,height:cssH,scrollX:0,scrollY:0,
           onclone:doc=>{
+            const cloneStage=doc.getElementById(stage.id);
+            if(cloneStage){cloneStage.style.setProperty('border-radius','0','important');cloneStage.style.setProperty('border','0','important');cloneStage.style.setProperty('box-shadow','none','important');cloneStage.style.setProperty('outline','none','important');}
             const cloneLayer=doc.getElementById(dotLayer.id);
             if(!cloneLayer)return;
             const cloneEls=[...cloneLayer.querySelectorAll('.dot-el')];
@@ -1249,7 +1254,9 @@ async function exportMotionGif(beforeAfter=false){
             });
           }
         });
-        gif.addFrame(canvas,{copy:true,delay:Math.round(1000/fps)});
+        const opaque=document.createElement('canvas');opaque.width=width;opaque.height=height;
+        const oc=opaque.getContext('2d',{alpha:false});oc.fillStyle='#ffffff';oc.fillRect(0,0,width,height);oc.drawImage(canvas,0,0,width,height);
+        gif.addFrame(opaque,{copy:true,delay:Math.round(1000/fps)});
       }
     }finally{
       original.forEach(({a,time,playState})=>{try{a.currentTime=time;if(playState==='running')a.play();}catch(e){}});
@@ -1262,7 +1269,7 @@ async function exportMotionGif(beforeAfter=false){
       gif.on('progress',p=>busy('🐰 Encoding '+Math.round(p*100)+'%'));
       gif.render();
     });
-    saveBlob(blob,beforeAfter?'NeonMoon-before-after.gif':'NeonMoon-motion.gif');
+    saveBlob(blob,'NeonMoon-motion.gif');
     status.textContent='GIF ready ♡';
   }catch(e){
     console.error('Motion GIF export failed',e);
@@ -1275,7 +1282,6 @@ async function exportMotionGif(beforeAfter=false){
   }
 }
 document.getElementById('expGif').onclick=()=>exportMotionGif(false);
-document.getElementById('expBA').onclick=()=>{alert('Before→After GIF is not available yet. Use Motion GIF to save your animation.');};
 const exportButtons=[...exportMenu.querySelectorAll('button')];exportButtons.forEach(btn=>{const t=btn.textContent.toLowerCase();if(t.includes('transparent'))btn.onclick=()=>exportImage(true);else if(t.includes('jpg')||t.includes('export')||t.includes('image')||t.includes('download'))btn.onclick=()=>exportImage(false);});
 for(const btn of document.querySelectorAll('button')){const t=(btn.id+' '+btn.textContent).toLowerCase();if(t.includes('undo'))btn.addEventListener('click',undo);if(t.includes('redo'))btn.addEventListener('click',redo);}
 window.updateNaturalStageSize=updateNaturalStageSize;
