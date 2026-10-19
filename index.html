@@ -746,7 +746,6 @@ input[type=file]{position:absolute;width:1px;height:1px;padding:0;margin:-1px;ov
 </div>
 
 <script>
-try{
 const stage = document.getElementById('stage');
 const bgLayer = document.getElementById('bgLayer');
 const dotLayer = document.getElementById('dotLayer');
@@ -1165,7 +1164,28 @@ function renderPolka(){
 ['polkaColor','polkaColor2','polkaSize','polkaSpace','polkaOpacity','polkaGradientMode','polkaColorMode'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{updatePolkaColorUI();renderPolka();}));
 updatePolkaColorUI();
 
-})();
+
+// Recovered editor utilities (missing from the uploaded build).
+const historyStack=[];let historyIndex=-1;
+function snapshotState(){return JSON.stringify({bg:{image:bgLayer.style.backgroundImage,color:bgLayer.style.backgroundColor,w:imgNaturalW,h:imgNaturalH},dots:placedDots,neon:neonLayer.innerHTML});}
+function restoreState(json){const data=typeof json==='string'?JSON.parse(json):json;const bg=data.bg||{};bgLayer.style.backgroundImage=bg.image||'none';bgLayer.style.backgroundColor=bg.color||'';imgNaturalW=bg.w||null;imgNaturalH=bg.h||null;placedDots=Array.isArray(data.dots)?data.dots:[];neonLayer.innerHTML=data.neon||'';updateNaturalStageSize();repaintDots();renderPolka();}
+function pushHistory(){const snap=snapshotState();if(historyStack[historyIndex]===snap)return;historyStack.splice(historyIndex+1);historyStack.push(snap);if(historyStack.length>35)historyStack.shift();historyIndex=historyStack.length-1;}
+function undo(){if(historyIndex>0)restoreState(historyStack[--historyIndex]);}
+function redo(){if(historyIndex<historyStack.length-1)restoreState(historyStack[++historyIndex]);}
+function makeDraggable(el,onEnd){let x,y,drag=false;el.style.touchAction='none';el.addEventListener('pointerdown',e=>{drag=true;x=e.clientX;y=e.clientY;el.setPointerCapture(e.pointerId);e.stopPropagation();});el.addEventListener('pointermove',e=>{if(!drag)return;const r=stage.getBoundingClientRect();el.style.left=Math.max(0,Math.min(100,parseFloat(el.style.left)+(e.clientX-x)/r.width*100))+'%';el.style.top=Math.max(0,Math.min(100,parseFloat(el.style.top)+(e.clientY-y)/r.height*100))+'%';x=e.clientX;y=e.clientY;});el.addEventListener('pointerup',()=>{if(drag){drag=false;onEnd?.(el);}});}
+function renderNeon(){/* Retain existing placed neon elements when editing other layers. */}
+function setStatus(msg){console.info('[NeonMoon]',msg);}
+function saveBlob(blob,name){const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);}
+async function exportImage(transparent=false){const w=imgNaturalW||stage.clientWidth,h=imgNaturalH||stage.clientHeight;const canvas=await html2canvas(stage,{backgroundColor:transparent?null:'#ffffff',scale:Math.min(4,Math.max(1,w/stage.clientWidth)),useCORS:true});canvas.toBlob(blob=>{if(blob)saveBlob(blob,'NeonMoon.'+(transparent?'png':'jpg'));},transparent?'image/png':'image/jpeg',.94);}
+const exportButtons=[...exportMenu.querySelectorAll('button')];exportButtons.forEach(btn=>{const t=btn.textContent.toLowerCase();if(t.includes('transparent'))btn.onclick=()=>exportImage(true);else if(t.includes('jpg')||t.includes('export')||t.includes('image')||t.includes('download'))btn.onclick=()=>exportImage(false);});
+for(const btn of document.querySelectorAll('button')){const t=(btn.id+' '+btn.textContent).toLowerCase();if(t.includes('undo'))btn.addEventListener('click',undo);if(t.includes('redo'))btn.addEventListener('click',redo);}
+window.updateNaturalStageSize=updateNaturalStageSize;
+window.pushHistory=pushHistory;
+window.snapshotState=snapshotState;
+window.restoreState=restoreState;
+window.renderNeon=renderNeon;
+window.saveBlob=saveBlob;
+pushHistory();
 </script>
 
 <script>
