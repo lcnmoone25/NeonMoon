@@ -413,6 +413,28 @@ input[type=file]{position:absolute;width:1px;height:1px;padding:0;margin:-1px;ov
  .panel .row{color:#fff!important}
  .bg-menu{z-index:60!important}
 }
+
+/* NeonMoon compact pastel mobile tools: preserve the original visual identity. */
+@media(max-width:700px){
+ html,body,body .app{background:#fffdfd!important;color:#393342!important}
+ body::before{display:block!important}
+ .appbar{background:linear-gradient(110deg,#eaffb6,#b6dc72)!important;border-bottom:2px solid #9dbf5a!important}
+ .brand,.brand-right{color:#39452b!important}
+ .export-fab{background:#fff!important;color:#4d4257!important;border:1px solid #b1ca7e!important;border-radius:50%!important}
+ .stage-wrap{background:radial-gradient(#d7e8c9 1.1px,transparent 1.3px) 0 0/23px 23px,#fff!important;padding:8px 3px 66px!important}
+ .stage{border-radius:5px!important}
+ .maintabs{background:#fff!important;border-top:1px solid #eee5f0!important;box-shadow:0 -3px 16px #6e527015!important}
+ .maintab-btn{color:#494052!important;border:1px solid #e8dce9!important;background:#fff!important;border-radius:14px!important}
+ .maintab-btn.active{color:#6b3b62!important;background:linear-gradient(135deg,#ffbee0,#ffeaf4)!important;border-color:#d9a9c6!important}
+ body.mobile-tools-open .panel.active{background:#fffafc!important;color:#393342!important;border:1px solid #f1e1ec!important;border-radius:18px 18px 0 0!important;max-height:min(29dvh,255px)!important;padding:8px 12px 14px!important;box-shadow:0 -5px 24px #634e6626!important}
+ .panel .subtabs{position:sticky!important;top:-8px!important;background:#fffafc!important;padding:5px 0 9px!important;z-index:3!important;display:flex!important;flex-wrap:nowrap!important;overflow-x:auto!important}
+ .panel .subtab-btn{background:#fff!important;color:#564b5c!important;border:1px solid #e8d8e5!important;border-radius:20px!important;white-space:nowrap!important}
+ .panel .subtab-btn.active{background:#ffb8d9!important;color:#4a3046!important;border-color:#ed9cc4!important}
+ .panel .section-title,.panel label.small,.panel .hint,.panel .row{color:#63576a!important}
+ .mobile-view-controls{background:#fffefeee!important;border:1px solid #eaddeb!important}
+ .mobile-view-controls button,#viewZoomLabel{color:#554a5d!important}
+ .undo-redo-row button{color:#554a5d!important}
+}
 </style>
 </head>
 <body>
