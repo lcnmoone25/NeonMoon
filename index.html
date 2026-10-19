@@ -185,7 +185,7 @@ body::after{
   color:#3fb8b0;pointer-events:none;
 }
 .stage{
-  position:relative;width:auto;max-width:min(320px,86%);aspect-ratio:1/1;
+  position:relative;width:min(320px,86%);max-width:100%;aspect-ratio:1/1;
   max-height:min(60vh,460px);
   margin:0 auto;
   background-color:#eceef0;
@@ -343,7 +343,7 @@ input[type=file]{position:absolute;width:1px;height:1px;padding:0;margin:-1px;ov
  .appbar{flex:none;min-height:48px}
  .breadcrumb-bar,.tabline-bar{display:none!important}
  .stage-wrap{flex:1 1 auto;min-height:125px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 10px 5px;overflow:auto;overscroll-behavior:contain}
- .stage{flex:none;max-width:min(88vw, 43dvh)!important;max-height:calc(100% - 86px)!important;box-sizing:border-box;transform:scale(var(--view-zoom,1));transform-origin:center center}
+ .stage{flex:none;width:min(88vw, 43dvh)!important;max-width:min(88vw, 43dvh)!important;max-height:calc(100% - 86px)!important;box-sizing:border-box;transform:scale(var(--view-zoom,1));transform-origin:center center}
  .stage-caption{display:none}
  .mobile-view-controls{display:flex;flex:none;position:relative;z-index:9}
  .undo-redo-row{flex:none;margin:5px 0 0}
@@ -361,7 +361,7 @@ input[type=file]{position:absolute;width:1px;height:1px;padding:0;margin:-1px;ov
  .app{height:100dvh!important;min-height:0!important;padding-bottom:0!important;display:flex!important;flex-direction:column!important;overflow:hidden!important}
  .appbar{order:0;flex:0 0 auto}
  .stage-wrap{order:1!important;flex:1 1 0!important;min-height:110px!important;overflow:hidden!important;position:relative!important;display:flex!important;flex-direction:column!important;justify-content:center!important;align-items:center!important;padding:12px 8px 86px!important;box-sizing:border-box!important}
- .stage{max-width:min(92vw, 42dvh)!important;max-height:calc(100% - 18px)!important;margin:auto!important}
+ .stage{width:min(92vw, 42dvh)!important;max-width:min(92vw, 42dvh)!important;max-height:calc(100% - 18px)!important;margin:auto!important}
  .mobile-view-controls{position:absolute!important;bottom:44px!important;left:50%!important;transform:translateX(-50%)!important;display:flex!important;align-items:center!important;justify-content:center!important;width:max-content!important;max-width:96%!important;margin:0!important;gap:7px!important}
  .mobile-view-controls button{min-width:43px;min-height:38px}
  .undo-redo-row{position:absolute!important;bottom:5px!important;left:50%!important;transform:translateX(-50%)!important;margin:0!important;display:flex!important;gap:10px!important}
@@ -760,13 +760,15 @@ bgFileInput.addEventListener('change', e=>{
       imgNaturalH = img.naturalHeight;
       stage.style.aspectRatio = imgNaturalW+'/'+imgNaturalH;
       bgLayer.style.backgroundColor = '';
-      bgLayer.style.backgroundImage = `url(${dataUrl})`;
+      bgLayer.style.backgroundImage = `url("${dataUrl}")`;
       bgLayer.style.backgroundSize = 'cover';
       drawToggle.style.display = (document.querySelector('.maintab-btn.active').dataset.tab==='t1' && hasBackground()) ? 'inline-block' : 'none';
       pushHistory();
     };
+    img.onerror = ()=>{ showDebugError('Could not decode selected image. Try JPG or PNG.'); };
     img.src = dataUrl;
   };
+  reader.onerror = ()=>showDebugError("Could not read selected image.");
   reader.readAsDataURL(f);
 });
 
