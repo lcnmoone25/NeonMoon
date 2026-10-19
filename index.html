@@ -435,6 +435,27 @@ input[type=file]{position:absolute;width:1px;height:1px;padding:0;margin:-1px;ov
  .mobile-view-controls button,#viewZoomLabel{color:#554a5d!important}
  .undo-redo-row button{color:#554a5d!important}
 }
+
+/* Compact mobile controls and movable photo preview */
+@media(max-width:700px){
+ .stage-wrap{touch-action:pan-x pan-y!important}
+ .stage{translate:var(--photo-pan-x,0px) var(--photo-pan-y,0px);touch-action:none!important}
+ body.mobile-tools-open .panel.active{max-height:min(25dvh,220px)!important;padding:6px 10px 9px!important}
+ .panel .subtabs{padding:2px 0 5px!important;gap:5px!important}
+ .panel .subtab-btn{padding:7px 11px!important;min-height:32px!important}
+ #s1c .section-title,#s1d .section-title,#s1d .hint{display:none!important}
+ #s1c .chip-row,#s1d .chip-row{display:flex!important;flex-wrap:nowrap!important;overflow-x:auto!important;gap:5px!important;padding:2px 0 5px!important;scrollbar-width:none}
+ #s1c .chip,#s1d .chip{flex:none!important;padding:6px 10px!important;min-height:30px!important;font-size:12px!important}
+ #s1c .row,#s1d .row{margin:3px 0!important;min-height:27px!important;gap:7px!important}
+ #s1c .row label,#s1d .row label{font-size:11px!important;min-width:54px!important}
+ #s1c input[type=range],#s1d input[type=range]{height:16px!important}
+ #s1d #playMotionBtn{padding:5px 13px!important;min-height:29px!important;margin-top:3px!important}
+ #t2 .subpanel .row{margin:4px 0!important;gap:6px!important}
+ #t2 .subpanel .hint{display:none!important}
+ #t2 .subpanel .section-title{margin:3px 0!important}
+ #t2 .chip-row{gap:5px!important;margin:4px 0!important}
+ #t2 .chip{padding:6px 9px!important;min-height:30px!important}
+}
 </style>
 </head>
 <body>
@@ -1711,6 +1732,12 @@ pushHistory();
  document.getElementById('viewMinus').addEventListener('click',()=>setZoom(zoom-.15));
  document.getElementById('viewPlus').addEventListener('click',()=>setZoom(zoom+.15));
  document.getElementById('viewFit').addEventListener('click',()=>setZoom(1));
+ // One-finger drag moves the photo within the preview without changing export.
+ let panX=0,panY=0,drag=null;
+ stageEl.addEventListener('pointerdown',e=>{if(e.pointerType==='touch' && e.isPrimary){drag={id:e.pointerId,x:e.clientX,y:e.clientY,px:panX,py:panY};stageEl.setPointerCapture(e.pointerId);}}, {passive:true});
+ stageEl.addEventListener('pointermove',e=>{if(drag&&e.pointerId===drag.id){panX=drag.px+e.clientX-drag.x;panY=drag.py+e.clientY-drag.y;stageEl.style.setProperty('--photo-pan-x',panX+'px');stageEl.style.setProperty('--photo-pan-y',panY+'px');}}, {passive:true});
+ const endDrag=e=>{if(drag&&e.pointerId===drag.id)drag=null;};
+ stageEl.addEventListener('pointerup',endDrag);stageEl.addEventListener('pointercancel',endDrag);
  let distance=0,initial=1;
  stageEl.addEventListener('touchstart',e=>{if(e.touches.length===2){distance=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);initial=zoom;}},{passive:true});
  stageEl.addEventListener('touchmove',e=>{if(e.touches.length===2&&distance){const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);setZoom(initial*d/distance);}},{passive:true});
