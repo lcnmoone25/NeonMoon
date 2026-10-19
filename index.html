@@ -601,8 +601,8 @@ input[type=file]{position:absolute;width:1px;height:1px;padding:0;margin:-1px;ov
         <button class="chip polka-shape-chip" data-v="square">■</button>
         <button class="chip polka-shape-chip" data-v="drop">💧</button>
       </div>
-      <div class="row polka-colors"><label class="small">Color</label><input type="color" id="polkaColor" value="#22d9ff"><select id="polkaColorMode" aria-label="Polka color mode"><option value="solid">Solid</option><option value="gradient">Gradient</option><option value="pantone">Pantone</option></select><select id="polkaGradientMode" aria-label="Gradient application"><option value="each">Each</option><option value="all">All</option></select></div>
-      <div id="polkaPaletteMount"></div><div class="row polka-palette" id="polkaPalette"><input type="color" id="polkaColor2" value="#ffffff" aria-label="Gradient second color"><div id="polkaPantoneColors" class="polka-swatches"></div></div>
+      <div class="row polka-colors" style="display:none!important" aria-hidden="true"><label class="small">Color</label><input type="color" id="polkaColor" value="#22d9ff"><select id="polkaColorMode" aria-label="Polka color mode"><option value="solid">Solid</option><option value="gradient">Gradient</option><option value="pantone">Pantone</option></select><select id="polkaGradientMode" aria-label="Gradient application"><option value="each">Each</option><option value="all">All</option></select></div>
+      <div id="polkaPaletteMount"></div><div class="row polka-palette" id="polkaPalette" style="display:none!important" aria-hidden="true"><input type="color" id="polkaColor2" value="#ffffff" aria-label="Gradient second color"><div id="polkaPantoneColors" class="polka-swatches"></div></div>
       <div class="row"><label class="small">Size</label><input type="range" id="polkaSize" min="3" max="30" value="8"><span class="range-val" id="polkaSizeVal">8</span></div>
       <div class="row"><label class="small">Spacing</label><input type="range" id="polkaSpace" min="14" max="60" value="26"><span class="range-val" id="polkaSpaceVal">26</span></div>
       <div class="row"><label class="small">Opacity</label><input type="range" id="polkaOpacity" min="10" max="100" value="60"><span class="range-val" id="polkaOpacityVal">60</span></div>
@@ -1209,10 +1209,12 @@ async function exportMotionGif(beforeAfter=false){
     if(rect.width<1||rect.height<1)throw Error('Upload a photo first');
     // Encode a mobile-friendly GIF; capture frozen computed animation states rather
     // than relying on html2canvas to evaluate CSS animations on its cloned DOM.
-    const scale=Math.min(1,520/Math.max(rect.width,rect.height));
+    // Export at the source image resolution where practical, not at tiny preview resolution.
+    const sourceW=imgNaturalW||rect.width, sourceH=imgNaturalH||rect.height;
+    const scale=Math.min(1200/Math.max(sourceW,sourceH),sourceW/rect.width);
     const width=Math.max(1,Math.round(rect.width*scale));
     const height=Math.max(1,Math.round(rect.height*scale));
-    const fps=6, speed=Math.max(.25,Number(document.getElementById('motionSpeed')?.value||100)/100);
+    const fps=8, speed=Math.max(.25,Number(document.getElementById('motionSpeed')?.value||100)/100);
     const loops=Math.max(1,Number(document.getElementById('motionLoop')?.value||1));
     const duration=Math.min(4,Math.max(1,1.6/speed));
     const frames=Math.max(6,Math.min(24,Math.ceil(duration*fps)));
@@ -1221,7 +1223,7 @@ async function exportMotionGif(beforeAfter=false){
     const original=animations.map(a=>({a,time:a.currentTime,playState:a.playState}));
     animations.forEach(a=>a.pause());
     workerUrl=__gifWorkerBlobUrl();
-    const gif=new GIF({workers:1,quality:18,width,height,workerScript:workerUrl,repeat:loops===1?-1:loops-1,background:'#ffffff'});
+    const gif=new GIF({workers:1,quality:14,width,height,workerScript:workerUrl,repeat:loops===1?-1:loops-1,background:'#ffffff'});
     try{
       for(let i=0;i<frames;i++){
         const t=i/frames*duration*1000;
