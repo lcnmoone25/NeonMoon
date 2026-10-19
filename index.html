@@ -799,7 +799,7 @@ let userPalette=[];try{userPalette=JSON.parse(localStorage.getItem('neonmoon-use
 function getPaletteColors(which){const st=paletteState[which];return st.tone==='My colors'?userPalette:PALETTE_TONES[st.tone]||PALETTE_TONES.Vivid;}
 function getPaint(which,fallback){const st=paletteState[which];if(st.mode==='pantone'){const colors=getPaletteColors(which);return colors.length?colors[Math.floor(Math.random()*colors.length)]:fallback;}return st.a||fallback;}
 function mountPalette(which,mountId,refresh){const host=document.getElementById(mountId);host.innerHTML=`<div class="palette-mini"><div class="palette-line"><select class="palette-mode"><option value="solid">Solid</option><option value="gradient">Gradient</option><option value="pantone">Pantone</option></select><select class="palette-tone"><option>Vivid</option><option>Pastel</option><option>Muted</option><option>My colors</option></select><input class="palette-a" type="color"><input class="palette-b" type="color" title="Gradient end"></div><div class="palette-swatches"></div><div class="palette-custom"><input class="palette-new" type="color" value="#ffb5da"><button type="button" class="palette-add">+ Save color</button><span class="palette-hint">Tap a saved color to use it · × to delete</span></div></div>`;const st=paletteState[which],mode=host.querySelector('.palette-mode'),tone=host.querySelector('.palette-tone'),a=host.querySelector('.palette-a'),b=host.querySelector('.palette-b');mode.value=st.mode;tone.value=st.tone;a.value=st.a;b.value=st.b;
-function redraw(){st.mode=mode.value;st.tone=tone.value;st.a=a.value;st.b=b.value;b.style.display=st.mode==='gradient'?'':'none';const custom=host.querySelector('.palette-custom');custom.style.display=st.tone==='My colors'?'flex':'none';const sw=host.querySelector('.palette-swatches');sw.innerHTML='';getPaletteColors(which).forEach(c=>{const wrap=document.createElement('span');wrap.className='palette-swatch-wrap';const btn=document.createElement('button');btn.type='button';btn.className='palette-swatch';btn.style.background=c;btn.title=c;btn.onclick=()=>{a.value=c;st.a=c;if(st.mode==='solid')refresh();else {mode.value='solid';redraw();}};wrap.append(btn);if(st.tone==='My colors'){const del=document.createElement('button');del.className='palette-delete';del.textContent='×';del.title='Remove color';del.onclick=()=>{userPalette=userPalette.filter(x=>x!==c);localStorage.setItem('neonmoon-user-palette',JSON.stringify(userPalette));redraw();refresh();};wrap.append(del);}sw.append(wrap);});refresh();}
+function redraw(){st.mode=mode.value;st.tone=tone.value;st.a=a.value;st.b=b.value;b.style.display=st.mode==='gradient'?'':'none';const custom=host.querySelector('.palette-custom');custom.style.display=st.mode==='pantone'&&st.tone==='My colors'?'flex':'none';tone.style.display=st.mode==='pantone'?'':'none';const sw=host.querySelector('.palette-swatches');sw.innerHTML='';getPaletteColors(which).forEach(c=>{const wrap=document.createElement('span');wrap.className='palette-swatch-wrap';const btn=document.createElement('button');btn.type='button';btn.className='palette-swatch';btn.style.background=c;btn.title=c;btn.onclick=()=>{a.value=c;st.a=c;if(st.mode==='solid')refresh();else {mode.value='solid';redraw();}};wrap.append(btn);if(st.tone==='My colors'){const del=document.createElement('button');del.className='palette-delete';del.textContent='×';del.title='Remove color';del.onclick=()=>{userPalette=userPalette.filter(x=>x!==c);localStorage.setItem('neonmoon-user-palette',JSON.stringify(userPalette));redraw();refresh();};wrap.append(del);}sw.append(wrap);});refresh();}
 [mode,tone,a,b].forEach(x=>x.addEventListener('input',redraw));host.querySelector('.palette-add').onclick=()=>{const c=host.querySelector('.palette-new').value;if(!userPalette.includes(c))userPalette.push(c);localStorage.setItem('neonmoon-user-palette',JSON.stringify(userPalette));tone.value='My colors';redraw();};redraw();return redraw;}
 const presets = [
   {a:'#ff3fd0',b:'#ffe3f7'},
@@ -1191,7 +1191,7 @@ function redo(){if(historyIndex<historyStack.length-1)restoreState(historyStack[
 function makeDraggable(el,onEnd){let x,y,drag=false;el.style.touchAction='none';el.addEventListener('pointerdown',e=>{drag=true;x=e.clientX;y=e.clientY;el.setPointerCapture(e.pointerId);e.stopPropagation();});el.addEventListener('pointermove',e=>{if(!drag)return;const r=stage.getBoundingClientRect();el.style.left=Math.max(0,Math.min(100,parseFloat(el.style.left)+(e.clientX-x)/r.width*100))+'%';el.style.top=Math.max(0,Math.min(100,parseFloat(el.style.top)+(e.clientY-y)/r.height*100))+'%';x=e.clientX;y=e.clientY;});el.addEventListener('pointerup',()=>{if(drag){drag=false;onEnd?.(el);}});}
 function renderNeon(){/* Retain existing placed neon elements when editing other layers. */}
 function setStatus(msg){console.info('[NeonMoon]',msg);}
-function saveBlob(blob,name){const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);}
+function saveBlob(blob,name){const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);}
 async function exportImage(transparent=false){const w=imgNaturalW||stage.clientWidth,h=imgNaturalH||stage.clientHeight;const canvas=await html2canvas(stage,{backgroundColor:transparent?null:'#ffffff',scale:Math.min(4,Math.max(1,w/stage.clientWidth)),useCORS:true});canvas.toBlob(blob=>{if(blob)saveBlob(blob,'NeonMoon.'+(transparent?'png':'jpg'));},transparent?'image/png':'image/jpeg',.94);}
 // Motion GIF export: capture actual animated DOM frames, then encode with bundled gif.js.
 async function exportMotionGif(beforeAfter=false){
@@ -1207,30 +1207,54 @@ async function exportMotionGif(beforeAfter=false){
     if(typeof GIF!=='function')throw Error('GIF encoder is unavailable');
     const rect=stage.getBoundingClientRect();
     if(rect.width<1||rect.height<1)throw Error('Upload a photo first');
-    const scale=Math.min(1.6,720/Math.max(rect.width,rect.height));
+    // Encode a mobile-friendly GIF; capture frozen computed animation states rather
+    // than relying on html2canvas to evaluate CSS animations on its cloned DOM.
+    const scale=Math.min(1,520/Math.max(rect.width,rect.height));
     const width=Math.max(1,Math.round(rect.width*scale));
     const height=Math.max(1,Math.round(rect.height*scale));
-    const fps=8, speed=Math.max(.25,Number(document.getElementById('motionSpeed')?.value||100)/100);
+    const fps=6, speed=Math.max(.25,Number(document.getElementById('motionSpeed')?.value||100)/100);
     const loops=Math.max(1,Number(document.getElementById('motionLoop')?.value||1));
-    const duration=Math.min(5,Math.max(1,1.7/speed));
-    const frames=Math.max(8,Math.min(28,Math.ceil(duration*fps)));
-    animations=[...dotLayer.querySelectorAll('.dot-el')].flatMap(el=>el.getAnimations());
+    const duration=Math.min(4,Math.max(1,1.6/speed));
+    const frames=Math.max(6,Math.min(24,Math.ceil(duration*fps)));
+    const animatedEls=[...dotLayer.querySelectorAll('.dot-el')];
+    animations=animatedEls.flatMap(el=>el.getAnimations());
     const original=animations.map(a=>({a,time:a.currentTime,playState:a.playState}));
     animations.forEach(a=>a.pause());
     workerUrl=__gifWorkerBlobUrl();
-    const gif=new GIF({workers:1,quality:12,width,height,workerScript:workerUrl,repeat:loops===1?-1:loops-1,background:'#ffffff'});
-    for(let i=0;i<frames;i++){
-      const t=i/(frames-1)*duration*1000;
-      animations.forEach(a=>{try{a.currentTime=t;}catch(e){}});
-      busy('🐰 Processing '+Math.round((i/frames)*80)+'%');
-      await new Promise(resolve=>requestAnimationFrame(resolve));
-      const canvas=await html2canvas(stage,{backgroundColor:'#ffffff',scale:width/rect.width,useCORS:true,logging:false});
-      gif.addFrame(canvas,{copy:true,delay:Math.round(1000/fps)});
+    const gif=new GIF({workers:1,quality:18,width,height,workerScript:workerUrl,repeat:loops===1?-1:loops-1,background:'#ffffff'});
+    try{
+      for(let i=0;i<frames;i++){
+        const t=i/frames*duration*1000;
+        animations.forEach(a=>{try{a.currentTime=t;}catch(e){}});
+        await new Promise(resolve=>requestAnimationFrame(resolve));
+        const frozen=animatedEls.map(el=>{
+          const cs=getComputedStyle(el);
+          return {el,transform:cs.transform,opacity:cs.opacity,visibility:cs.visibility};
+        });
+        busy('🐰 Processing, please wait ♡ '+Math.round((i/frames)*75)+'%');
+        const canvas=await html2canvas(stage,{
+          backgroundColor:'#ffffff',scale:width/rect.width,useCORS:true,logging:false,
+          width:rect.width,height:rect.height,scrollX:0,scrollY:0,
+          onclone:doc=>{
+            const cloneLayer=doc.getElementById(dotLayer.id);
+            if(!cloneLayer)return;
+            const cloneEls=[...cloneLayer.querySelectorAll('.dot-el')];
+            frozen.forEach((f,j)=>{const target=cloneEls[j];if(!target)return;
+              target.style.setProperty('animation','none','important');
+              target.style.setProperty('transform',f.transform,'important');
+              target.style.setProperty('opacity',f.opacity,'important');
+              target.style.setProperty('visibility',f.visibility,'important');
+            });
+          }
+        });
+        gif.addFrame(canvas,{copy:true,delay:Math.round(1000/fps)});
+      }
+    }finally{
+      original.forEach(({a,time,playState})=>{try{a.currentTime=time;if(playState==='running')a.play();}catch(e){}});
     }
-    original.forEach(({a,time,playState})=>{try{a.currentTime=time;if(playState==='running')a.play();}catch(e){}});
-    busy('🐰 Encoding GIF…');
+    busy('🐰 Encoding GIF, please wait ♡');
     const blob=await new Promise((resolve,reject)=>{
-      const timeout=setTimeout(()=>reject(Error('GIF encoding timed out')),90000);
+      const timeout=setTimeout(()=>reject(Error('GIF encoding timed out')),120000);
       gif.on('finished',b=>{clearTimeout(timeout);resolve(b)});
       gif.on('abort',()=>{clearTimeout(timeout);reject(Error('GIF encoding cancelled'))});
       gif.on('progress',p=>busy('🐰 Encoding '+Math.round(p*100)+'%'));
@@ -1243,8 +1267,8 @@ async function exportMotionGif(beforeAfter=false){
     status.textContent='GIF export failed: '+e.message;
     alert('Could not save Motion GIF: '+e.message);
   }finally{
-    animations.forEach(a=>{try{a.play()}catch(e){}});
-    if(workerUrl)setTimeout(()=>URL.revokeObjectURL(workerUrl),3000);
+    animations.forEach(a=>{try{if(a.playState==='paused')a.play()}catch(e){}});
+    if(workerUrl)setTimeout(()=>URL.revokeObjectURL(workerUrl),10000);
     button.disabled=false;button.textContent=old;
   }
 }
