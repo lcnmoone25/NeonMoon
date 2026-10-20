@@ -458,6 +458,14 @@ input[type=file]{position:absolute;width:1px;height:1px;padding:0;margin:-1px;ov
 }
 @media(max-width:700px){.dot-actions{display:flex!important;gap:5px!important;flex-wrap:nowrap!important}.dot-actions button{font-size:10px!important;padding:7px 5px!important;min-width:0!important;flex:1}.polka-colors select{max-width:105px;min-width:0;font-size:12px}.polka-palette{margin-top:0!important}.polka-swatches{flex-wrap:wrap;gap:5px}}
 .polka-swatches{display:flex;gap:5px;align-items:center}.polka-swatch{width:22px;height:22px;border-radius:7px;border:2px solid white;box-shadow:0 0 0 1px #ddd;padding:0}.polka-swatch.selected{box-shadow:0 0 0 2px #ee70bb}.polka-colors select{border-radius:10px;padding:6px;border:1px solid #e6d7e5;background:white}
+
+/* Fit the complete photo above the tools, without altering export dimensions. */
+@media(max-width:700px){
+ .stage-wrap{display:flex!important;align-items:center!important;justify-content:center!important;min-height:0!important;overflow:hidden!important;}
+ .stage{flex-shrink:0!important;transform-origin:center center!important;}
+ .maintabs{padding-top:5px!important;padding-bottom:calc(5px + env(safe-area-inset-bottom))!important;}
+ body.mobile-tools-open .panel.active{max-height:min(23dvh,205px)!important;}
+}
 </style>
 <style>
 .neon-preset-tools{display:flex;align-items:center;gap:7px;min-width:0}
@@ -504,6 +512,7 @@ input[type=file]{position:absolute;width:1px;height:1px;padding:0;margin:-1px;ov
 
     <button id="expTransparent">🫥 Transparent PNG (no bg)</button>
     <button id="expGif">✨ Motion GIF</button>
+    <button id="expLiveVideo">📱 Live Photo · Video (MOV/MP4)</button>
   </div>
   <div class="export-status-fixed" id="expStatus"></div>
 
@@ -892,7 +901,7 @@ function updateNaturalStageSize(){
   const ratio=(imgNaturalW && imgNaturalH) ? imgNaturalW/imgNaturalH : 1;
   const styles=getComputedStyle(wrap);
   const innerW=Math.max(80,wrap.clientWidth-parseFloat(styles.paddingLeft)-parseFloat(styles.paddingRight)-8);
-  const reserved=mobile?82:24;
+  const reserved=mobile?(document.body.classList.contains('mobile-tools-open')?285:54):24;
   const innerH=Math.max(80,wrap.clientHeight-parseFloat(styles.paddingTop)-parseFloat(styles.paddingBottom)-reserved);
   const width=Math.max(40,Math.min(innerW,innerH*ratio,mobile?1200:720));
   stage.style.setProperty('--natural-stage-width',width+'px');
@@ -901,6 +910,8 @@ function updateNaturalStageSize(){
 window.addEventListener('resize',updateNaturalStageSize);
 if(typeof ResizeObserver!=='undefined') new ResizeObserver(updateNaturalStageSize).observe(document.querySelector('.stage-wrap'));
 requestAnimationFrame(updateNaturalStageSize);
+new MutationObserver(()=>requestAnimationFrame(updateNaturalStageSize)).observe(document.body,{attributes:true,attributeFilter:['class']});
+if(window.visualViewport)window.visualViewport.addEventListener('resize',updateNaturalStageSize);
 
 function hexToRgb(hex){
   const h = hex.replace('#','');
@@ -1191,7 +1202,27 @@ function makeDraggable(el,onEnd){let x,y,drag=false;el.style.touchAction='none';
 function renderNeon(){/* Retain existing placed neon elements when editing other layers. */}
 function setStatus(msg){console.info('[NeonMoon]',msg);}
 function saveBlob(blob,name){const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);}
-async function exportImage(transparent=false){const w=imgNaturalW||stage.clientWidth,h=imgNaturalH||stage.clientHeight;const canvas=await html2canvas(stage,{backgroundColor:transparent?null:'#ffffff',scale:Math.min(4,Math.max(1,w/stage.clientWidth)),useCORS:true});canvas.toBlob(blob=>{if(blob)saveBlob(blob,'NeonMoon.'+(transparent?'png':'jpg'));},transparent?'image/png':'image/jpeg',.94);}
+async function exportImage(transparent=false){
+  // Render from the original image pixel dimensions, never the CSS preview resolution.
+  const cssW=stage.offsetWidth,cssH=stage.offsetHeight;
+  if(!cssW||!cssH)throw Error('No image canvas available');
+  const targetW=Math.round(imgNaturalW||cssW),targetH=Math.round(imgNaturalH||cssH);
+  const scale=targetW/cssW;
+  const previousTransform=stage.style.transform;
+  try{
+    // Preview zoom must not be baked into exports.
+    stage.style.transform='none';
+    const rendered=await html2canvas(stage,{backgroundColor:transparent?null:'#ffffff',scale,useCORS:true,logging:false,width:cssW,height:cssH,scrollX:0,scrollY:0,
+      onclone:doc=>{const clone=doc.getElementById(stage.id);if(clone){clone.style.transform='none';clone.style.translate='none';clone.style.border='0';clone.style.boxShadow='none';clone.style.borderRadius='0';}}});
+    const output=document.createElement('canvas');output.width=targetW;output.height=targetH;
+    const ctx=output.getContext('2d',{alpha:transparent});
+    if(!transparent){ctx.fillStyle='#fff';ctx.fillRect(0,0,targetW,targetH);}
+    ctx.drawImage(rendered,0,0,targetW,targetH);
+    const blob=await new Promise(resolve=>output.toBlob(resolve,transparent?'image/png':'image/jpeg',1));
+    if(!blob)throw Error('Could not encode image');
+    saveBlob(blob,'NeonMoon.'+(transparent?'png':'jpg'));
+  }catch(err){console.error('Image export failed',err);alert('Export failed: '+err.message);}finally{stage.style.transform=previousTransform;}
+}
 // Motion GIF export: capture actual animated DOM frames, then encode with bundled gif.js.
 async function exportMotionGif(beforeAfter=false){
   const button=document.getElementById('expGif');
@@ -1213,8 +1244,8 @@ async function exportMotionGif(beforeAfter=false){
     const sourceH=imgNaturalH || cssH;
     // Keep original aspect ratio and export at a useful image resolution.
     // 1200px long edge by default; never downscale below 900px on normal photos.
-    const maxEdge=Math.min(1200,Math.max(900,Math.max(sourceW,sourceH)));
-    const ratio=cssW/cssH;
+    const maxEdge=Math.min(1600,Math.max(sourceW,sourceH));
+    const ratio=sourceW/sourceH;
     const width=ratio>=1?Math.round(maxEdge):Math.round(maxEdge*ratio);
     const height=ratio>=1?Math.round(maxEdge/ratio):Math.round(maxEdge);
     const fps=8, speed=Math.max(.25,Number(document.getElementById('motionSpeed')?.value||100)/100);
@@ -1226,7 +1257,7 @@ async function exportMotionGif(beforeAfter=false){
     const original=animations.map(a=>({a,time:a.currentTime,playState:a.playState}));
     animations.forEach(a=>a.pause());
     workerUrl=__gifWorkerBlobUrl();
-    const gif=new GIF({workers:1,quality:14,width,height,workerScript:workerUrl,repeat:loops===1?-1:loops-1,background:'#ffffff'});
+    const gif=new GIF({workers:1,quality:8,width,height,workerScript:workerUrl,repeat:loops===1?-1:loops-1,background:'#ffffff'});
     try{
       for(let i=0;i<frames;i++){
         const t=i/frames*duration*1000;
@@ -1281,6 +1312,89 @@ async function exportMotionGif(beforeAfter=false){
     button.disabled=false;button.textContent=old;
   }
 }
+// iOS Safari cannot create a Photos Live Photo asset from a web page.
+// Export the motion as a high-quality video suitable for conversion to Live Photo.
+async function exportLivePhotoVideo(){
+ const button=document.getElementById('expLiveVideo');
+ const status=document.getElementById('expStatus');
+ const originalLabel=button.textContent;
+ let recorder=null,stream=null,animations=[],saved=[];
+ const report=t=>{button.textContent=t;status.textContent=t;status.style.display='block';};
+ try{
+  exportMenu.classList.remove('open');
+  button.disabled=true;report('🐰 Processing, please wait ♡');
+  if(typeof MediaRecorder==='undefined'||typeof HTMLCanvasElement.prototype.captureStream!=='function')
+    throw Error('This browser cannot record canvas video. Try Safari on an updated iPhone.');
+  const types=['video/mp4;codecs=avc1.42E01E','video/mp4','video/webm;codecs=vp9','video/webm'];
+  const mime=types.find(t=>MediaRecorder.isTypeSupported(t));
+  if(!mime)throw Error('No supported video format in this browser.');
+  const cssW=stage.offsetWidth,cssH=stage.offsetHeight;
+  if(!cssW||!cssH)throw Error('Please upload an image first.');
+  const sourceW=imgNaturalW||cssW,sourceH=imgNaturalH||cssH;
+  const ratio=Math.min(1,1920/Math.max(sourceW,sourceH));
+  // Record at native image resolution when feasible; cap for iPhone memory.
+  const width=Math.max(2,Math.round(sourceW*ratio/2)*2);
+  const height=Math.max(2,Math.round(sourceH*ratio/2)*2);
+  const fps=20;
+  const speed=Math.max(.25,Number(document.getElementById('motionSpeed')?.value||100)/100);
+  const duration=Math.max(1,Math.min(5,1.6/speed));
+  const loops=Math.max(1,Math.min(8,Number(document.getElementById('motionLoop')?.value||1)));
+  const frames=Math.ceil(duration*loops*fps);
+  const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;
+  const ctx=canvas.getContext('2d',{alpha:false});
+  stream=canvas.captureStream(0);
+  const track=stream.getVideoTracks()[0];
+  // Some Safari versions only support timed captureStream, not requestFrame.
+  if(typeof track.requestFrame!=='function'){stream.getTracks().forEach(t=>t.stop());stream=canvas.captureStream(fps);}
+  const chunks=[];
+  recorder=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:Math.min(18000000,Math.max(5000000,width*height*5))});
+  const finished=new Promise((resolve,reject)=>{
+   recorder.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data)};
+   recorder.onerror=e=>reject(e.error||Error('Video recording failed'));
+   recorder.onstop=()=>chunks.length?resolve(new Blob(chunks,{type:mime})):reject(Error('No video frames were recorded'));
+  });
+  const dots=[...dotLayer.querySelectorAll('.dot-el')];
+  animations=dots.flatMap(el=>el.getAnimations());
+  saved=animations.map(a=>({a,time:a.currentTime,playState:a.playState}));
+  animations.forEach(a=>a.pause());
+  recorder.start();
+  const interval=1000/fps;
+  for(let i=0;i<frames;i++){
+   const begin=performance.now();
+   const t=(i%Math.ceil(duration*fps))/fps*1000;
+   animations.forEach(a=>{try{a.currentTime=t}catch(e){}});
+   await new Promise(r=>requestAnimationFrame(r));
+   const frozen=dots.map(el=>{const c=getComputedStyle(el);return {transform:c.transform,opacity:c.opacity,visibility:c.visibility}});
+   const shot=await html2canvas(stage,{backgroundColor:'#ffffff',scale:width/cssW,width:cssW,height:cssH,useCORS:true,logging:false,scrollX:0,scrollY:0,
+    onclone:doc=>{
+     const root=doc.getElementById('stage');if(root){root.style.transform='none';root.style.border='0';root.style.borderRadius='0';root.style.boxShadow='none';}
+     const layer=doc.getElementById('dotLayer');if(layer){const items=[...layer.querySelectorAll('.dot-el')];frozen.forEach((f,j)=>{const el=items[j];if(!el)return;el.style.setProperty('animation','none','important');el.style.setProperty('transform',f.transform,'important');el.style.setProperty('opacity',f.opacity,'important');el.style.setProperty('visibility',f.visibility,'important')})}
+    }});
+   ctx.fillStyle='#ffffff';ctx.fillRect(0,0,width,height);ctx.drawImage(shot,0,0,width,height);
+   stream.getVideoTracks()[0]?.requestFrame?.();
+   report('🐰 Processing, please wait ♡ '+Math.round((i+1)/frames*100)+'%');
+   await new Promise(r=>setTimeout(r,Math.max(0,interval-(performance.now()-begin))));
+  }
+  recorder.stop();
+  const blob=await finished;
+  const ext=mime.includes('mp4')?'mp4':'webm';
+  const file=new File([blob],'NeonMoon-motion.'+ext,{type:mime.split(';')[0]});
+  report('Video ready ♡');
+  // Share sheet can offer Save Video on iOS. It does not install a Live Photo.
+  if(navigator.canShare?.({files:[file]})&&navigator.share){
+   try{await navigator.share({files:[file],title:'NeonMoon motion video'});return}
+   catch(e){if(e.name==='AbortError')return;}
+  }
+  saveBlob(blob,file.name);
+ }catch(e){console.error('Video export failed',e);status.textContent='Video export failed: '+e.message;alert('Video export failed: '+e.message)}
+ finally{
+  saved.forEach(({a,time,playState})=>{try{a.currentTime=time;if(playState==='running')a.play()}catch(e){}});
+  if(recorder?.state==='recording')try{recorder.stop()}catch(e){}
+  stream?.getTracks().forEach(t=>t.stop());button.disabled=false;button.textContent=originalLabel;
+ }
+}
+document.getElementById('expLiveVideo').onclick=exportLivePhotoVideo;
+
 document.getElementById('expGif').onclick=()=>exportMotionGif(false);
 const exportButtons=[...exportMenu.querySelectorAll('button')];exportButtons.forEach(btn=>{const t=btn.textContent.toLowerCase();if(t.includes('transparent'))btn.onclick=()=>exportImage(true);else if(t.includes('jpg')||t.includes('export')||t.includes('image')||t.includes('download'))btn.onclick=()=>exportImage(false);});
 for(const btn of document.querySelectorAll('button')){const t=(btn.id+' '+btn.textContent).toLowerCase();if(t.includes('undo'))btn.addEventListener('click',undo);if(t.includes('redo'))btn.addEventListener('click',redo);}
