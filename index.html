@@ -486,6 +486,7 @@ input[type=file]{position:absolute;width:1px;height:1px;padding:0;margin:-1px;ov
 #cropOv i::after{content:"";position:absolute;width:14px;height:14px;border-radius:50%;background:#fff;box-shadow:0 0 0 2px #ee70bb;left:10px;top:10px}
 #cropOv i[data-h=tl]{left:-17px;top:-17px}#cropOv i[data-h=tr]{right:-17px;top:-17px}#cropOv i[data-h=bl]{left:-17px;bottom:-17px}#cropOv i[data-h=br]{right:-17px;bottom:-17px}
 </style>
+<style id="polkaTabCss">#polkaTabBtn{white-space:normal!important;line-height:1.1!important}@media(max-width:700px){#polkaTabBtn{font-size:clamp(9px,2.6vw,11px)!important}}</style>
 </head>
 <body>
 <div class="bg-fade"></div>
@@ -520,8 +521,9 @@ input[type=file]{position:absolute;width:1px;height:1px;padding:0;margin:-1px;ov
 
   <div class="maintabs">
     <button type="button" class="maintab-btn bg-menu-btn" id="bgMenuBtn">📷 Upload</button>
-    <button type="button" class="maintab-btn" data-tab="tPhoto" id="photoTabBtn" style="display:none">🖼 Photo</button>
+    <button type="button" class="maintab-btn" data-tab="tPhoto" id="photoTabBtn" style="display:none!important">🖼 Photo</button>
     <button class="maintab-btn active" data-tab="t1">Dot & Text</button>
+    <button class="maintab-btn" data-tab="tPolka" id="polkaTabBtn">Polka Overlay</button>
     <button class="maintab-btn" data-tab="t2">Neon Text</button>
     <div class="bg-menu" id="bgMenu">
       <button type="button" id="bgMenuImage">📷 Choose image</button>
@@ -555,7 +557,6 @@ input[type=file]{position:absolute;width:1px;height:1px;padding:0;margin:-1px;ov
     <div class="subtabs" id="subtabs1">
       <button class="subtab-btn active" data-sub="s1a">Text</button>
       <button class="subtab-btn" data-sub="s1b">Shape</button>
-      <button class="subtab-btn" data-sub="s1c">Polka</button>
       <button class="subtab-btn" data-sub="s1d">Motion</button>
     </div>
 
@@ -601,24 +602,6 @@ input[type=file]{position:absolute;width:1px;height:1px;padding:0;margin:-1px;ov
       <div class="hint">Changing shape instantly applies to all existing dots.</div>
     </div>
 
-    <div class="subpanel" id="s1c">
-      <div class="section-title">Polka dot overlay & shape</div>
-      <div class="chip-row chip-row-wrap">
-        <button class="chip polka-toggle-chip active" data-v="off">Off</button>
-        <button class="chip polka-toggle-chip" data-v="on">On</button>
-        <button class="chip polka-shape-chip active" data-v="circle">●</button>
-        <button class="chip polka-shape-chip" data-v="heart">♥</button>
-        <button class="chip polka-shape-chip" data-v="star">★</button>
-        <button class="chip polka-shape-chip" data-v="square">■</button>
-        <button class="chip polka-shape-chip" data-v="drop">💧</button>
-      </div>
-      <div class="row polka-colors" style="display:none!important" aria-hidden="true"><label class="small">Color</label><input type="color" id="polkaColor" value="#22d9ff"><select id="polkaColorMode" aria-label="Polka color mode"><option value="solid">Solid</option><option value="gradient">Gradient</option><option value="pantone">Pantone</option></select><select id="polkaGradientMode" aria-label="Gradient application"><option value="each">Each</option><option value="all">All</option></select></div>
-      <div id="polkaPaletteMount"></div><div class="row polka-palette" id="polkaPalette" style="display:none!important" aria-hidden="true"><input type="color" id="polkaColor2" value="#ffffff" aria-label="Gradient second color"><div id="polkaPantoneColors" class="polka-swatches"></div></div>
-      <div class="row"><label class="small">Size</label><input type="range" id="polkaSize" min="3" max="30" value="8"><span class="range-val" id="polkaSizeVal">8</span></div>
-      <div class="row"><label class="small">Spacing</label><input type="range" id="polkaSpace" min="14" max="60" value="26"><span class="range-val" id="polkaSpaceVal">26</span></div>
-      <div class="row"><label class="small">Opacity</label><input type="range" id="polkaOpacity" min="10" max="100" value="60"><span class="range-val" id="polkaOpacityVal">60</span></div>
-    </div>
-
     <div class="subpanel" id="s1d">
       <div class="section-title">Motion — applies instantly</div>
       <div class="chip-row chip-row-wrap" id="dotMotionRow">
@@ -637,6 +620,27 @@ input[type=file]{position:absolute;width:1px;height:1px;padding:0;margin:-1px;ov
   </div>
 
   <div class="panel" id="tPhoto"></div>
+
+  <div class="panel" id="tPolka">
+    <div class="subpanel active" id="s1c">
+      <div class="section-title">Polka overlay</div>
+      <div class="chip-row chip-row-wrap">
+        <button class="chip polka-toggle-chip active" data-v="off">Off</button>
+        <button class="chip polka-toggle-chip" data-v="on">On</button>
+        <button class="chip polka-shape-chip active" data-v="circle">●</button>
+        <button class="chip polka-shape-chip" data-v="heart">♥</button>
+        <button class="chip polka-shape-chip" data-v="star">★</button>
+        <button class="chip polka-shape-chip" data-v="square">■</button>
+        <button class="chip polka-shape-chip" data-v="drop">💧</button>
+      </div>
+      <div class="row polka-colors" style="display:none!important" aria-hidden="true"><label class="small">Color</label><input type="color" id="polkaColor" value="#000000"><select id="polkaColorMode" aria-label="Polka color mode"><option value="solid">Solid</option><option value="gradient">Gradient</option><option value="pantone">Pantone</option></select><select id="polkaGradientMode" aria-label="Gradient application"><option value="each">Each</option><option value="all">All</option></select></div>
+      <div class="section-title">Color</div><div class="preset-row" id="presetRowPolka"></div>
+      <div id="polkaPaletteMount"></div><div class="row polka-palette" id="polkaPalette" style="display:none!important" aria-hidden="true"><input type="color" id="polkaColor2" value="#ffffff" aria-label="Gradient second color"><div id="polkaPantoneColors" class="polka-swatches"></div></div>
+      <div class="row"><label class="small">Size</label><input type="range" id="polkaSize" min="3" max="30" value="8"><span class="range-val" id="polkaSizeVal">8</span></div>
+      <div class="row"><label class="small">Spacing</label><input type="range" id="polkaSpace" min="14" max="60" value="26"><span class="range-val" id="polkaSpaceVal">26</span></div>
+      <div class="row"><label class="small">Opacity</label><input type="range" id="polkaOpacity" min="10" max="100" value="60"><span class="range-val" id="polkaOpacityVal">60</span></div>
+    </div>
+  </div>
 
   <div class="panel" id="t2">
     <div class="subtabs" id="subtabs2">
@@ -807,7 +811,7 @@ function chipGroup(sel, onChange){
 }
 
 const PALETTE_TONES={Vivid:['#ff3fd0','#ff3434','#ff8a00','#fff000','#37d749','#00c5ff','#7055ff','#111111'],Pastel:['#ffc5df','#ffe2bd','#fff3a8','#c8efbb','#b9e9f7','#d8cbff','#f1c8e9','#f6f0e8'],Muted:['#bd829d','#c59b88','#c6b77d','#8da78c','#8aa8b3','#9893b5','#b0a3a1','#676c75']};
-const paletteState={dot:{mode:'solid',tone:'Vivid',a:'#ff3fd0',b:'#ffe3f7'},polka:{mode:'solid',tone:'Pastel',a:'#22d9ff',b:'#ffffff'}};
+const paletteState={dot:{mode:'solid',tone:'Vivid',a:'#ff3fd0',b:'#ffe3f7'},polka:{mode:'solid',tone:'Pastel',a:'#000000',b:'#ffffff'}};
 let userPalette=[];try{userPalette=JSON.parse(localStorage.getItem('neonmoon-user-palette')||'[]');}catch(e){}
 function getPaletteColors(which){const st=paletteState[which];return st.tone==='My colors'?userPalette:PALETTE_TONES[st.tone]||PALETTE_TONES.Vivid;}
 function getPaint(which,fallback){const st=paletteState[which];if(st.mode==='pantone'){const colors=getPaletteColors(which);return colors.length?colors[Math.floor(Math.random()*colors.length)]:fallback;}return st.a||fallback;}
@@ -836,6 +840,10 @@ buildPresets('presetRow1', p=>{ document.getElementById('dotColor').value=p.a;pa
 buildPresets('presetRow2', p=>{ document.getElementById('neonFill').value=p.a; document.getElementById('neonStroke').value=p.b; });
 mountPalette('dot','dotPaletteMount',()=>{if(typeof repaintDots==='function')repaintDots();});
 mountPalette('polka','polkaPaletteMount',()=>{if(typeof renderPolka==='function')renderPolka();});
+(function(){const row=document.getElementById('presetRowPolka'),list=[{a:'#000000',b:'#555555'},{a:'#ffffff',b:'#d9d9d9'},...presets];
+  list.forEach((p,i)=>{const d=document.createElement('div');d.className='preset'+(i===0?' active':'');d.innerHTML=`<span style="background:${p.a}"></span><span style="background:${p.b}"></span>`;
+   d.onclick=()=>{row.querySelectorAll('.preset').forEach(x=>x.classList.remove('active'));d.classList.add('active');Object.assign(paletteState.polka,{mode:'solid',a:p.a,b:p.b});
+    mountPalette('polka','polkaPaletteMount',()=>{if(typeof renderPolka==='function')renderPolka();});};row.appendChild(d);});})();
 
 const exportFab = document.getElementById('exportFab');
 const exportMenu = document.getElementById('exportMenu');
@@ -1664,7 +1672,7 @@ pushHistory();
  const chip=(a,t,x='')=>`<button type="button" class="chip" ${a} ${x}>${t}</button>`;
  const rng=(id,l,mn,mx)=>`<div class="row"><label class="small" style="min-width:58px">${l}</label><input type="range" id="${id}" min="${mn}" max="${mx}" style="flex:1;min-width:0"></div>`;
  panel.innerHTML=`<div id="phMain">
-  <div class="chip-row chip-row-wrap">${chip('id="phRotL"','↺ 90°')}${chip('id="phRotR"','↻ 90°')}${chip('id="phFlip"','⇋ Flip')}${chip('id="phCrop"','✂ Crop')}${chip('id="phChange"','🖼 Change')}<label class="chip" style="position:relative">🎨 Color<input type="color" id="phColor" value="#ffe3f7" style="position:absolute;inset:0;opacity:0;width:100%;height:100%"></label></div>
+  <div class="chip-row chip-row-wrap">${chip('id="phRotL"','↺ 90°')}${chip('id="phRotR"','↻ 90°')}${chip('id="phFlip"','⇋ Flip')}${chip('id="phCrop"','✂ Crop')}${chip('id="phChange"','🖼 Change')}</div>
   <div class="section-title">Effect</div>
   <div class="chip-row chip-row-wrap" id="phFx">${chip('data-fx="none"','None')}${chip('data-fx="bw"','B&amp;W')}${chip('data-fx="gm"','Gradient map')}${chip('data-fx="ht"','Halftone')}${chip('data-fx="gl"','Glow')}</div>
   <div data-p="bw">${rng('phBwC','Contrast',-50,100)}</div>
@@ -1721,7 +1729,8 @@ pushHistory();
  function schedule(hist=true){if(hist)dirty=true;const my=++seq;preview(my);clearTimeout(timer);timer=setTimeout(()=>{timer=null;fin=finalize(my);},450);}
  window.flushPhoto=async function(){if(timer){clearTimeout(timer);timer=null;fin=finalize(seq);}await fin;};
  /* ---------- sync UI with state ---------- */
- function sync(){const has=!!ps.origCss;photoBtn.style.display=has?'':'none';bgBtn.style.display=has?'none':'';
+ function sync(){const has=!!ps.origCss;const vis=(el,on)=>on?el.style.removeProperty('display'):el.style.setProperty('display','none','important');  // CSS uses display:block!important on tabs
+  vis(photoBtn,has);vis(bgBtn,!has);
   if(!has){if(panel.classList.contains('active')){panel.classList.remove('active');photoBtn.classList.remove('active');$('t1').classList.add('active');document.querySelector('.maintab-btn[data-tab="t1"]').classList.add('active');}return;}
   const o=ps.ops;Q('[data-fx]').forEach(b=>b.classList.toggle('active',b.dataset.fx===o.fx));Q('[data-p]').forEach(d=>d.style.display=d.dataset.p===o.fx?'':'none');
   Q('[data-htm]').forEach(b=>b.classList.toggle('active',b.dataset.htm===o.ht.mode));Q('[data-glb]').forEach(b=>b.classList.toggle('active',b.dataset.glb===o.gl.blend));
@@ -1737,8 +1746,7 @@ pushHistory();
  const rot=d=>set(o=>{o.rot=(o.rot+d+4)%4;o.crop=null;});
  $('phRotL').onclick=()=>rot(-1);$('phRotR').onclick=()=>rot(1);$('phFlip').onclick=()=>set(o=>{o.flip=!o.flip;o.crop=null;});
  $('phChange').onclick=()=>{const f=$('bgFile');f.value='';f.click();};
- $('phColor').oninput=e=>{const b=$('bgColorInput');b.value=e.target.value;b.dispatchEvent(new Event('input'));};$('phColor').onchange=()=>$('bgColorInput').dispatchEvent(new Event('change'));
- panel.addEventListener('click',e=>{const b=e.target.closest('button[data-fx],button[data-gmp],button[data-htm],button[data-glb],button[data-ar]');if(!b)return;
+  panel.addEventListener('click',e=>{const b=e.target.closest('button[data-fx],button[data-gmp],button[data-htm],button[data-glb],button[data-ar]');if(!b)return;
   if(b.dataset.fx)set(o=>{o.fx=b.dataset.fx;});
   else if(b.dataset.gmp){const g=GMP[+b.dataset.gmp];set(o=>{o.fx='gm';o.gm={a:g[1],b:g[2],c:g[3]};});}
   else if(b.dataset.htm)set(o=>{o.ht.mode=b.dataset.htm;});else if(b.dataset.glb)set(o=>{o.gl.blend=b.dataset.glb;});
