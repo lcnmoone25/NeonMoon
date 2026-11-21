@@ -563,7 +563,7 @@ input[type=file]{position:absolute;width:1px;height:1px;padding:0;margin:-1px;ov
     <div class="subpanel active" id="s1a">
       <div class="row dot-actions"><button type="button" class="draw-toggle-inline" id="drawToggle">✎ Draw mode: Off</button><button class="ghost" id="shuffleBtn">🔀 Re-scatter</button><button class="ghost" id="clearDotsBtn">🗑 Clear all</button></div>
       <div class="section-title">Color preset</div>
-      <div class="preset-row" id="presetRow1"></div><div id="dotPaletteMount"></div>
+      <div class="neon-preset-tools"><div class="preset-row" id="presetRow1"></div><button type="button" class="chip" id="presetReverse" title="Reverse dot / text color">⇄ Reverse</button></div><div id="dotPaletteMount"></div><div id="dotColorHolder" style="display:none"><input type="color" id="dotColor" value="#ff3fd0"><input type="color" id="dotTextColor" value="#ffe3f7"></div>
       <div class="row"><input type="text" id="dotText" placeholder="Type text..."></div>
       <div class="row">
         <label class="small">Font</label>
@@ -577,15 +577,12 @@ input[type=file]{position:absolute;width:1px;height:1px;padding:0;margin:-1px;ov
           <option value="'Brush Script MT',cursive">Cursive</option>
         </select>
       </div>
-      <div class="row">
-        <label class="small">Dot color</label><input type="color" id="dotColor" value="#ff3fd0">
-        <label class="small">Text color</label><input type="color" id="dotTextColor" value="#ffffff">
-      </div>
       <div class="row"><label class="small">Dot count</label><input type="range" id="dotCount" min="1" max="60" value="1"><span class="range-val" id="dotCountVal">1</span></div>
+      <div class="chip-row" id="dotCountMode"><button class="chip active" data-v="blank">Blank</button><button class="chip" data-v="repeat">Repeat</button><button class="chip" data-v="fit">Fit</button></div>
       <div class="row"><label class="small">Dot size</label><input type="range" id="dotSize" min="14" max="60" value="20"><span class="range-val" id="dotSizeVal">20</span></div>
       <div class="row"><label class="small">Text size</label><input type="range" id="dotTextSize" min="20" max="100" value="42"><span class="range-val" id="dotTextSizeVal">42</span></div>
 
-      <div class="hint">Dot count auto-matches your text length (you can drag the slider for extra blank dots). Turn on "✎ Draw mode" on the photo to tap and place dots by hand.</div>
+      <div class="hint">Extra dots (count &gt; letters): Blank = leave empty · Repeat = loop the text · Fit = ignore count, match the text length. Turn on "✎ Draw mode" and drag on the photo to draw in one stroke without lifting your finger.</div>
     </div>
 
     <div class="subpanel" id="s1b">
@@ -815,8 +812,8 @@ const paletteState={dot:{mode:'solid',tone:'Vivid',a:'#ff3fd0',b:'#ffe3f7'},polk
 let userPalette=[];try{userPalette=JSON.parse(localStorage.getItem('neonmoon-user-palette')||'[]');}catch(e){}
 function getPaletteColors(which){const st=paletteState[which];return st.tone==='My colors'?userPalette:PALETTE_TONES[st.tone]||PALETTE_TONES.Vivid;}
 function getPaint(which,fallback){const st=paletteState[which];if(st.mode==='pantone'){const colors=getPaletteColors(which);return colors.length?colors[Math.floor(Math.random()*colors.length)]:fallback;}return st.a||fallback;}
-function mountPalette(which,mountId,refresh){const host=document.getElementById(mountId);host.innerHTML=`<div class="palette-mini"><div class="palette-line"><select class="palette-mode"><option value="solid">Solid</option><option value="gradient">Gradient</option><option value="pantone">Pantone</option></select><select class="palette-tone"><option>Vivid</option><option>Pastel</option><option>Muted</option><option>My colors</option></select><input class="palette-a" type="color"><input class="palette-b" type="color" title="Gradient end"></div><div class="palette-swatches"></div><div class="palette-custom"><input class="palette-new" type="color" value="#ffb5da"><button type="button" class="palette-add">+ Save color</button><span class="palette-hint">Tap a saved color to use it · × to delete</span></div></div>`;const st=paletteState[which],mode=host.querySelector('.palette-mode'),tone=host.querySelector('.palette-tone'),a=host.querySelector('.palette-a'),b=host.querySelector('.palette-b');mode.value=st.mode;tone.value=st.tone;a.value=st.a;b.value=st.b;
-function redraw(){st.mode=mode.value;st.tone=tone.value;st.a=a.value;st.b=b.value;b.style.display=st.mode==='gradient'?'':'none';const custom=host.querySelector('.palette-custom');custom.style.display=st.mode==='pantone'&&st.tone==='My colors'?'flex':'none';tone.style.display=st.mode==='pantone'?'':'none';const sw=host.querySelector('.palette-swatches');sw.innerHTML='';getPaletteColors(which).forEach(c=>{const wrap=document.createElement('span');wrap.className='palette-swatch-wrap';const btn=document.createElement('button');btn.type='button';btn.className='palette-swatch';btn.style.background=c;btn.title=c;btn.onclick=()=>{a.value=c;st.a=c;if(st.mode==='solid')refresh();else {mode.value='solid';redraw();}};wrap.append(btn);if(st.tone==='My colors'){const del=document.createElement('button');del.className='palette-delete';del.textContent='×';del.title='Remove color';del.onclick=()=>{userPalette=userPalette.filter(x=>x!==c);localStorage.setItem('neonmoon-user-palette',JSON.stringify(userPalette));redraw();refresh();};wrap.append(del);}sw.append(wrap);});refresh();}
+function mountPalette(which,mountId,refresh){const host=document.getElementById(mountId);host.innerHTML=`<div class="palette-mini"><div class="palette-line"><select class="palette-mode"><option value="solid">Solid</option><option value="gradient">Gradient</option><option value="pantone">Pantone</option></select><select class="palette-tone"><option>Vivid</option><option>Pastel</option><option>Muted</option><option>My colors</option></select><input class="palette-a" type="color"><input class="palette-b" type="color" title="Gradient end"></div><div class="palette-swatches"></div><div class="palette-custom"><input class="palette-new" type="color" value="#ffb5da"><button type="button" class="palette-add">+ Add color</button><span class="palette-hint">Pick a set above or add your own (My colors) · × to delete</span></div></div>`;const st=paletteState[which],mode=host.querySelector('.palette-mode'),tone=host.querySelector('.palette-tone'),a=host.querySelector('.palette-a'),b=host.querySelector('.palette-b');mode.value=st.mode;tone.value=st.tone;a.value=st.a;b.value=st.b;
+function redraw(){st.mode=mode.value;st.tone=tone.value;st.a=a.value;st.b=b.value;b.style.display=st.mode==='gradient'?'':'none';const custom=host.querySelector('.palette-custom');custom.style.display=st.mode==='pantone'?'flex':'none';a.style.display=st.mode==='pantone'?'none':'';tone.style.display=st.mode==='pantone'?'':'none';const sw=host.querySelector('.palette-swatches');sw.innerHTML='';sw.style.display=st.mode==='pantone'?'flex':'none';getPaletteColors(which).forEach(c=>{const wrap=document.createElement('span');wrap.className='palette-swatch-wrap';const btn=document.createElement('button');btn.type='button';btn.className='palette-swatch';btn.style.background=c;btn.title=c;btn.onclick=null;wrap.append(btn);if(st.tone==='My colors'){const del=document.createElement('button');del.className='palette-delete';del.textContent='×';del.title='Remove color';del.onclick=()=>{userPalette=userPalette.filter(x=>x!==c);localStorage.setItem('neonmoon-user-palette',JSON.stringify(userPalette));redraw();refresh();};wrap.append(del);}sw.append(wrap);});refresh();}
 [mode,tone,a,b].forEach(x=>x.addEventListener('input',redraw));host.querySelector('.palette-add').onclick=()=>{const c=host.querySelector('.palette-new').value;if(!userPalette.includes(c))userPalette.push(c);localStorage.setItem('neonmoon-user-palette',JSON.stringify(userPalette));tone.value='My colors';redraw();};redraw();return redraw;}
 const presets = [
   {a:'#ff3fd0',b:'#ffe3f7'},
@@ -836,9 +833,28 @@ function buildPresets(rowId, onPick){
   });
 }
 let placedDots = []; // Initialize before palette callbacks can repaint dots.
-buildPresets('presetRow1', p=>{ document.getElementById('dotColor').value=p.a;paletteState.dot.a=p.a; repaintDots(); });
+const dotHost=()=>document.getElementById('dotPaletteMount');
+let dotPaletteRedraw=()=>{};
+buildPresets('presetRow1', p=>{
+  const h=dotHost();
+  h.querySelector('.palette-mode').value='solid';
+  h.querySelector('.palette-a').value=p.a;          // dot = first color
+  document.getElementById('dotTextColor').value=p.b; // text = second color
+  dotPaletteRedraw();
+});
+document.getElementById('presetReverse').onclick=()=>{
+  const h=dotHost(),m=h.querySelector('.palette-mode').value,a=h.querySelector('.palette-a'),b=h.querySelector('.palette-b'),t=document.getElementById('dotTextColor');
+  if(m==='solid'){const x=a.value;a.value=t.value;t.value=x;}
+  else if(m==='gradient'){const x=a.value;a.value=b.value;b.value=x;}
+  else{const x=t.value;t.value=a.value;t.value=x;return;}
+  dotPaletteRedraw();
+};
 buildPresets('presetRow2', p=>{ document.getElementById('neonFill').value=p.a; document.getElementById('neonStroke').value=p.b; });
-mountPalette('dot','dotPaletteMount',()=>{if(typeof repaintDots==='function')repaintDots();});
+dotPaletteRedraw=mountPalette('dot','dotPaletteMount',()=>{if(typeof repaintDots==='function')repaintDots();});
+(function(){const line=document.querySelector('#dotPaletteMount .palette-line');if(!line)return;
+  line.querySelector('.palette-a').title='Dot color';
+  const lab=document.createElement('label');lab.className='small';lab.textContent='Text';
+  const t=document.getElementById('dotTextColor');t.title='Text color';line.append(lab,t);})();
 mountPalette('polka','polkaPaletteMount',()=>{if(typeof renderPolka==='function')renderPolka();});
 (function(){const row=document.getElementById('presetRowPolka'),list=[{a:'#000000',b:'#555555'},{a:'#ffffff',b:'#d9d9d9'},...presets];
   list.forEach((p,i)=>{const d=document.createElement('div');d.className='preset'+(i===0?' active':'');d.innerHTML=`<span style="background:${p.a}"></span><span style="background:${p.b}"></span>`;
@@ -1068,7 +1084,8 @@ function scatterDots(){
   const chars = text.length ? text.split('') : [];
   const count = parseInt(document.getElementById('dotCount').value);
   placedDots = [];
-  const n = Math.max(count, chars.length);
+  const cm = (document.querySelector('#dotCountMode .chip.active')||{dataset:{v:'blank'}}).dataset.v;
+  const n = chars.length ? (cm==='fit' ? chars.length : Math.max(count, chars.length)) : count;
   const bandCenter = 35 + Math.random()*30;
   const slot = 100/Math.max(n,1);
   for(let i=0;i<n;i++){
@@ -1078,7 +1095,10 @@ function scatterDots(){
     const leftPct = Math.min(100-dotRadiusPct, Math.max(dotRadiusPct, baseLeft + jitter));
     const dotRadiusYPct = (parseFloat(document.getElementById("dotSize").value)/2 + 5) / Math.max(1,dotLayer.clientHeight) * 100;
     const topPct = Math.min(100-dotRadiusYPct, Math.max(dotRadiusYPct, bandCenter + (Math.random()-0.5)*60));
-    placedDots.push({leftPct, topPct, char: chars[i] || null});
+    let ch = null;
+    if(i < chars.length) ch = chars[i];
+    else if(cm==='repeat' && chars.length) ch = chars[i % chars.length];
+    placedDots.push({leftPct, topPct, char: ch});
   }
   repaintDots();
   renderPolka();
@@ -1102,13 +1122,21 @@ document.getElementById('dotText').addEventListener('input', ()=>{
   const chars = text.length ? text.split('') : [];
   // auto-sync dot count to text length unless user manually raised it higher
   const slider = document.getElementById('dotCount');
-  if(!dotCountUserOverride || parseInt(slider.value) < chars.length){
+  const fitMode = document.querySelector('#dotCountMode .chip.active')?.dataset.v==='fit';
+  if(fitMode || !dotCountUserOverride || parseInt(slider.value) < chars.length){
     slider.value = Math.max(1, chars.length);
     document.getElementById('dotCountVal').textContent = slider.value;
   }
   scatterDots();
 });
 document.getElementById('dotCount').addEventListener('input', ()=>{ dotCountUserOverride = true; scatterDots(); });
+chipGroup('#dotCountMode', v=>{
+  const slider=document.getElementById('dotCount');
+  const len=document.getElementById('dotText').value.replace(/\s+/g,'').length;
+  slider.disabled = v==='fit'; slider.style.opacity = v==='fit'?'.4':'';
+  if(v==='fit'){ slider.value=Math.max(1,len); document.getElementById('dotCountVal').textContent=slider.value; }
+  scatterDots();
+});
 chipGroup('#dotShapeRow', repaintDots);
 chipGroup('#dotMotionRow', ()=>{const status=document.getElementById('motionProcessing');status.style.display='block';requestAnimationFrame(()=>{applyMotionToExisting();requestAnimationFrame(()=>{status.style.display='none';});});});
 document.getElementById('motionLoop').addEventListener('input', applyMotionToExisting);
@@ -1137,19 +1165,46 @@ drawToggle.addEventListener('click', ()=>{
   drawToggle.textContent = '✎ Draw mode: ' + (drawMode?'On':'Off');
   dotLayer.classList.toggle('drawmode', drawMode);
 });
-stage.addEventListener('click', (e)=>{
-  if(!drawMode) return;
-  if(e.target.closest('.draggable')) return;
+let drawing=false, lastPt=null;
+function addDrawDot(cx,cy){
   const rect = stage.getBoundingClientRect();
-  const leftPct = ((e.clientX-rect.left)/rect.width)*100;
-  const topPct = ((e.clientY-rect.top)/rect.height)*100;
+  const leftPct = Math.min(100,Math.max(0,((cx-rect.left)/rect.width)*100));
+  const topPct = Math.min(100,Math.max(0,((cy-rect.top)/rect.height)*100));
   const text = document.getElementById('dotText').value.replace(/\s+/g,'').trim();
   const chars = text.length ? text.split('') : [];
-  const char = chars[placedDots.length % (chars.length||1)] || null;
+  const cm = document.querySelector('#dotCountMode .chip.active')?.dataset.v;
+  const idx = placedDots.length;
+  let char = null;
+  if(chars.length){ char = (cm==='repeat') ? chars[idx % chars.length] : (idx<chars.length ? chars[idx] : null); }
   placedDots.push({leftPct, topPct, char});
-  repaintDots();
-  pushHistory();
+  const el = document.createElement('div');
+  el.dataset.dotIndex = idx;
+  drawSingleDot(el, leftPct, topPct, char);
+  dotLayer.appendChild(el);
+}
+stage.addEventListener('pointerdown', e=>{
+  if(!drawMode || e.button>0) return;
+  if(e.target.closest('.draggable')) return;
+  e.preventDefault();
+  drawing=true; lastPt={x:e.clientX,y:e.clientY};
+  try{stage.setPointerCapture(e.pointerId);}catch(_){}
+  addDrawDot(e.clientX,e.clientY);
 });
+stage.addEventListener('pointermove', e=>{
+  if(!drawing) return;
+  const scale = stage.offsetWidth ? stage.getBoundingClientRect().width/stage.offsetWidth : 1;
+  const spacing = Math.max(4, parseFloat(document.getElementById('dotSize').value)*0.9*scale);
+  let dx=e.clientX-lastPt.x, dy=e.clientY-lastPt.y, d=Math.hypot(dx,dy);
+  while(d>=spacing){
+    const k=spacing/d;
+    lastPt={x:lastPt.x+dx*k, y:lastPt.y+dy*k};
+    addDrawDot(lastPt.x,lastPt.y);
+    dx=e.clientX-lastPt.x; dy=e.clientY-lastPt.y; d=Math.hypot(dx,dy);
+  }
+});
+function endDraw(e){ if(!drawing) return; drawing=false; lastPt=null; pushHistory(); }
+stage.addEventListener('pointerup', endDraw);
+stage.addEventListener('pointercancel', endDraw);
 
 const polkaPantones=['#f7b6cc','#f4db79','#a8d8bf','#a9c6e8','#c5b2df','#f6a983','#84d5dc','#e7a9d2','#d9e3a5','#f4eee8'];
 const polkaSwatches=document.getElementById('polkaPantoneColors');
