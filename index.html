@@ -1902,7 +1902,11 @@ pushHistory();
  function fxGL(c,p){const W=c.width,H=c.height,sc=Math.min(1,640/Math.max(W,H)),sw=Math.max(1,Math.round(W*sc)),sh=Math.max(1,Math.round(H*sc));
   const s=document.createElement('canvas');s.width=sw;s.height=sh;const sx=s.getContext('2d',{willReadFrequently:true});sx.imageSmoothingQuality='high';sx.drawImage(c,0,0,sw,sh);
   const id=sx.getImageData(0,0,sw,sh),r=Math.max(1,Math.round(Math.max(sw,sh)*p.blur*.006));for(let i=0;i<3;i++)boxBlur(id.data,sw,sh,r);sx.putImageData(id,0,0);
-  const x=c.getContext('2d');x.save();x.globalCompositeOperation=p.blend;x.globalAlpha=p.op/100;x.imageSmoothingQuality='high';x.drawImage(s,0,0,W,H);x.restore();return c;}
+  // Blend per-pixel (no canvas composite ops: iOS Safari tiles big canvases and only applied multiply/screen to part of the image)
+  const up=document.createElement('canvas');up.width=W;up.height=H;const ux=up.getContext('2d',{willReadFrequently:true});ux.imageSmoothingQuality='high';ux.drawImage(s,0,0,W,H);
+  const x=c.getContext('2d',{willReadFrequently:true}),bd=ux.getImageData(0,0,W,H).data,od=x.getImageData(0,0,W,H),o=od.data,al=p.op/100,mul=p.blend==='multiply';
+  for(let i=0;i<o.length;i+=4){for(let j=0;j<3;j++){const a=o[i+j],b=bd[i+j],m=mul?a*b/255:255-(255-a)*(255-b)/255;o[i+j]=a+(m-a)*al;}}
+  x.putImageData(od,0,0);return c;}
  /* ---------- render ---------- */
  async function build(maxEdge,nc){
   const img=await loadImg(srcOf(ps.origCss)),o=ps.ops,r=o.rot%4,w=img.naturalWidth,h=img.naturalHeight,sw=r%2?h:w,sh=r%2?w:h;
